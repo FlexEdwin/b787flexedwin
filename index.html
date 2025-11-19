@@ -73,6 +73,18 @@
                     <span x-show="cargandoAuth">Validando...</span>
                 </button>
             </form>
+
+        <div class="mt-6 relative flex py-2 items-center">
+        <div class="flex-grow border-t border-slate-700"></div>
+        <span class="flex-shrink-0 mx-4 text-slate-500 text-xs">O entra sin registro</span>
+        <div class="flex-grow border-t border-slate-700"></div>
+        </div>
+    
+        <button @click="loginAnonimo" :disabled="cargandoAuth" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 py-3 rounded-xl font-bold transition mt-2">
+        🕵️‍♂️ Modo Invitado
+        </button>
+
+            
         </div>
 
         <!-- VISTA: MENU -->
@@ -285,6 +297,24 @@
                         this.auth.user = data.user;
                         await this.cargarAtas();
                         this.vista = 'menu';
+                    }
+                },
+
+                async loginAnonimo() {
+                    this.cargandoAuth = true;
+                    // Esta función crea un usuario temporal en Supabase
+                    const { data, error } = await sb.auth.signInAnonymously();
+                    
+                    this.cargandoAuth = false;
+                    
+                    if (error) {
+                        this.showToast("Error al entrar como invitado", 'error');
+                        console.error(error);
+                    } else {
+                        this.auth.user = data.user;
+                        await this.cargarAtas();
+                        this.vista = 'menu';
+                        this.showToast("Entrando en modo temporal...", 'info');
                     }
                 },
 
