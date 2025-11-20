@@ -152,8 +152,8 @@
                         class="inline-flex p-4 rounded-2xl bg-blue-500/10 text-4xl mb-4 ring-1 ring-blue-500/20 animate-float">
                         ✈️
                     </div>
-                    <h2 class="text-2xl font-bold text-white">Bienvenido a Bordo</h2>
-                    <p class="text-slate-400 text-sm mt-2">Inicia sesión para acceder al simulador</p>
+                    <h2 class="text-2xl font-bold text-white">Bienvenido</h2>
+                    <p class="text-slate-400 text-sm mt-2">Inicia sesión para acceder como usuario</p>
                 </div>
 
                 <form @submit.prevent="login" class="space-y-4">
@@ -161,7 +161,7 @@
                         <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Email</label>
                         <input type="email" x-model="auth.email"
                             class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                            placeholder="usuario@aerolinea.com">
+                            placeholder="email">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Contraseña</label>
@@ -171,7 +171,7 @@
                     </div>
                     <button type="submit" :disabled="cargandoAuth"
                         class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/20 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-2">
-                        <span x-show="!cargandoAuth">Ingresar al Cockpit</span>
+                        <span x-show="!cargandoAuth">Ingresar</span>
                         <span x-show="cargandoAuth" class="animate-pulse">Verificando credenciales...</span>
                     </button>
                 </form>
@@ -342,26 +342,164 @@
                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span class="text-4xl font-black text-white" x-text="`${porcentajeAcierto}%`"></span>
                     <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Efectividad</span>
+                    <div
+                        class="absolute top-0 right-0 p-32 bg-blue-600/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/20 transition-all">
+                    </div>
+                    <div class="relative z-10">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                            📚</div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Estudio General</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Modo estándar. Preguntas aleatorias de todos
+                            los sistemas para mantenerte al día.</p>
+                    </div>
+                    <div
+                        class="relative z-10 flex items-center text-blue-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
+                        Comenzar <span class="ml-2">→</span>
+                    </div>
+                    </button>
+
+                    <!-- Card: Sistemas (ATA) -->
+                    <div
+                        class="rounded-3xl bg-slate-800 border border-slate-700 p-6 flex flex-col justify-between h-64 relative overflow-hidden">
+                        <div class="absolute bottom-0 left-0 p-32 bg-purple-600/10 rounded-full blur-3xl -ml-16 -mb-16">
+                        </div>
+                        <div class="relative z-10">
+                            <div
+                                class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center text-3xl mb-4">
+                                ⚙️</div>
+                            <h3 class="text-2xl font-bold text-white mb-2">Por Sistemas</h3>
+                            <p class="text-slate-400 text-sm mb-4">Enfócate en un capítulo ATA específico.</p>
+
+                            <div class="flex gap-2">
+                                <select x-model="ataSeleccionado"
+                                    class="flex-1 bg-slate-900 border border-slate-600 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-purple-500">
+                                    <option value="">Seleccionar ATA...</option>
+                                    <template x-for="ata in atas" :key="ata.id">
+                                        <option :value="ata.id" x-text="`${ata.id} - ${ata.nombre}`"></option>
+                                    </template>
+                                </select>
+                                <button @click="cargarPreguntas(parseInt(ataSeleccionado))" :disabled="!ataSeleccionado"
+                                    class="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 rounded-xl font-bold transition-colors">
+                                    Ir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card: Fallos -->
+                    <button @click="cargarPreguntas('fallos')"
+                        class="group relative overflow-hidden rounded-3xl bg-slate-800 border border-slate-700 hover:border-red-500/50 transition-all duration-300 text-left h-64 flex flex-col justify-between p-6 hover:shadow-2xl hover:shadow-red-900/20">
+                        <div
+                            class="absolute top-0 left-0 p-32 bg-red-600/10 rounded-full blur-3xl -ml-16 -mt-16 group-hover:bg-red-600/20 transition-all">
+                        </div>
+                        <div class="relative z-10">
+                            <div
+                                class="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                                ⚠️</div>
+                            <h3 class="text-2xl font-bold text-white mb-2">Repasar Fallos</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Vuelve a intentar las preguntas que
+                                fallaste
+                                anteriormente.</p>
+                        </div>
+                        <div
+                            class="relative z-10 flex items-center text-red-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
+                            Repasar Ahora <span class="ml-2">→</span>
+                        </div>
+                    </button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-slate-900/50 p-4 rounded-2xl border border-emerald-500/20">
-                    <p class="text-3xl font-black text-emerald-400" x-text="stats.correctas"></p>
-                    <p class="text-xs text-slate-500 uppercase font-bold">Correctas</p>
-                </div>
-                <div class="bg-slate-900/50 p-4 rounded-2xl border border-red-500/20">
-                    <p class="text-3xl font-black text-red-400" x-text="stats.incorrectas"></p>
-                    <p class="text-xs text-slate-500 uppercase font-bold">Incorrectas</p>
-                </div>
-            </div>
+            <!-- VISTA: QUIZ (DASHBOARD STYLE) -->
+            <div x-show="vista === 'quiz'" class="flex-1 flex flex-col gap-6">
 
-            <button @click="volverAlMenu"
-                class="w-full bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl font-bold transition-all">
-                Volver al Hangar (Menú)
-            </button>
+                <!-- Top Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Total -->
+                    <div
+                        class="bg-slate-800 rounded-2xl p-4 border-l-4 border-blue-500 shadow-lg flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total</p>
+                            <p class="text-2xl font-black text-white" x-text="preguntas.length"></p>
+                        </div>
+                        <div class="text-2xl opacity-50">🟦</div>
+                    </div>
+                    <!-- Aciertos -->
+                    <div
+                        class="bg-slate-800 rounded-2xl p-4 border-l-4 border-emerald-500 shadow-lg flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Aciertos</p>
+                            <p class="text-2xl font-black text-emerald-400" x-text="stats.correctas"></p>
+                        </div>
+                        <div class="text-2xl opacity-50">🟩</div>
+                    </div>
+                    <!-- Fallos -->
+                    <div
+                        class="bg-slate-800 rounded-2xl p-4 border-l-4 border-red-500 shadow-lg flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Fallos</p>
+                            <p class="text-2xl font-black text-red-400" x-text="stats.incorrectas"></p>
+                        </div>
+                        <div class="text-2xl opacity-50">🟥</div>
+                    </div>
+                    <!-- Racha -->
+                    <div
+                        class="bg-slate-800 rounded-2xl p-4 border-l-4 border-purple-500 shadow-lg flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Racha</p>
+                            <p class="text-2xl font-black text-purple-400" x-text="stats.racha"></p>
+                        </div>
+                        <div class="text-2xl opacity-50">🔥</div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                class="sticky bottom-4 z-20">
+                <button @click="siguientePregunta"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-xl shadow-blue-900/40 flex items-center justify-center gap-2 transition-all transform active:scale-95">
+                    <span>Siguiente Pregunta</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                </button>
+            </div>
         </div>
-    </div>
+
+        <!-- VISTA: FIN -->
+        <div x-show="vista === 'fin'" class="flex-1 flex flex-col items-center justify-center text-center">
+            <div
+                class="bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl w-full max-w-lg relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+
+                <h2 class="text-3xl font-black text-white mb-2">¡Misión Cumplida!</h2>
+                <p class="text-slate-400 mb-8">Resumen de tu sesión de entrenamiento</p>
+
+                <div class="relative w-48 h-48 mx-auto mb-8">
+                    <canvas id="chartResultados"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-4xl font-black text-white" x-text="`${porcentajeAcierto}%`"></span>
+                        <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Efectividad</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-emerald-500/20">
+                        <p class="text-3xl font-black text-emerald-400" x-text="stats.correctas"></p>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Correctas</p>
+                    </div>
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-red-500/20">
+                        <p class="text-3xl font-black text-red-400" x-text="stats.incorrectas"></p>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Incorrectas</p>
+                    </div>
+                </div>
+
+                <button @click="volverAlMenu"
+                    class="w-full bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl font-bold transition-all">
+                    Volver al Menú
+                </button>
+            </div>
+        </div>
 
     </div>
 
@@ -393,15 +531,11 @@
                 stats: { correctas: 0, incorrectas: 0, racha: 0 },
                 chartInstance: null,
 
-                get preguntaActual() { return this.preguntas[this.indiceActual]; },
-                get modoTexto() {
-                    const map = { 'nuevas': 'Estudio General', 'ata': 'Por Categoría', 'fallos': 'Repaso de Fallos' };
-                    return map[this.modo] || 'Estudio';
-                },
                 get porcentajeAcierto() {
                     const total = this.stats.correctas + this.stats.incorrectas;
                     return total === 0 ? 0 : Math.round((this.stats.correctas / total) * 100);
                 },
+
                 get nivelUsuario() {
                     const score = this.stats.correctas;
                     if (score < 10) return 'Cadete';
@@ -411,9 +545,9 @@
 
                 async initApp() {
                     this.checkLocalStorage();
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
-                    }
+                    // if ('serviceWorker' in navigator) {
+                    //     navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
+                    // }
 
                     try {
                         const { data } = await sb.auth.getSession();
