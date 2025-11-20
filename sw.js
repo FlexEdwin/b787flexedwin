@@ -8,6 +8,7 @@ const URLS_TO_CACHE = [
   './supabase.js',
   './chart.js',
   './confetti.js',
+  './icon.png',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap'
 ];
 
