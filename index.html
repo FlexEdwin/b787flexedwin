@@ -12,7 +12,7 @@
     <!-- ESTILOS LOCALES -->
     <link href="./output.css" rel="stylesheet">
 
-    <!-- SCRIPTS LOCALES -->
+    <!-- SCRIPTS DE DEPENDENCIAS (Cargados desde local) -->
     <script defer src="./alpine.js"></script>
     <script src="./supabase.js"></script>
     <script src="./chart.js"></script>
@@ -22,11 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        /* Utilidades específicas que no están en Tailwind */
         [x-cloak] {
             display: none !important;
         }
@@ -86,7 +82,7 @@
             animation: pop 0.3s ease-in-out;
         }
 
-        /* Scrollbar personalizado */
+        /* Scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
@@ -103,17 +99,23 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #64748b;
         }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
     </style>
 </head>
 
 <body
-    class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 bg-[url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat bg-fixed bg-blend-overlay">
+    class="bg-slate-900 text-slate-100 font-sans antialiased selection:bg-blue-500 selection:text-white min-h-screen flex flex-col">
 
-    <!-- Overlay oscuro para legibilidad -->
-    <div class="absolute inset-0 bg-slate-950/90 z-0"></div>
-
+    <!-- Main App Container -->
     <div x-data="app()" x-init="initApp()" @keydown.window="handleTeclado($event)"
-        class="w-full max-w-3xl relative z-10 flex flex-col min-h-[600px]" x-cloak>
+        class="flex-1 flex flex-col max-w-5xl mx-auto w-full p-4 md:p-6 relative" x-cloak>
 
         <!-- TOAST -->
         <div x-show="toast.visible" x-transition:enter="transition ease-out duration-300"
@@ -126,24 +128,27 @@
             <span x-text="toast.mensaje"></span>
         </div>
 
-        <!-- HEADER (Visible siempre excepto cargando) -->
+        <!-- HEADER -->
         <header x-show="vista !== 'cargando'"
-            class="mb-6 flex justify-between items-end border-b border-slate-800/50 pb-4 mx-4 md:mx-0">
+            class="mb-8 text-center md:text-left md:flex md:justify-between md:items-end border-b border-slate-800 pb-6">
             <div>
-                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white">
+                <h1 class="text-3xl md:text-4xl font-black tracking-tight text-white mb-1">
                     B787 <span class="text-blue-500">FlexEdwin</span>
                 </h1>
+                <p class="text-slate-400 text-sm font-medium tracking-wide uppercase">Study Platform by Flex</p>
             </div>
 
-            <!-- Perfil -->
-            <div x-show="auth.user" class="flex items-center gap-3">
+            <div x-show="auth.user" class="mt-4 md:mt-0 flex items-center gap-4 justify-center md:justify-end">
                 <div class="text-right hidden md:block">
-                    <p class="text-xs text-slate-400 uppercase font-bold">Rango</p>
-                    <p class="text-blue-400 font-bold text-sm" x-text="nivelUsuario"></p>
+                    <p class="text-xs text-slate-400 uppercase font-bold">Rango Actual</p>
+                    <p class="text-blue-400 font-bold" x-text="nivelUsuario"></p>
                 </div>
+                <div
+                    class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-lg shadow-lg border border-white/10">
+                    👨‍✈️</div>
                 <button @click="logout"
-                    class="p-2 rounded-lg bg-slate-800 hover:bg-red-500/20 hover:text-red-400 transition-colors border border-slate-700"
-                    title="Salir">
+                    class="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-red-400 transition-colors"
+                    title="Cerrar Sesión">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -154,7 +159,7 @@
         </header>
 
         <!-- VISTA: LOADING -->
-        <div x-show="vista === 'cargando'" class="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+        <div x-show="vista === 'cargando'" class="flex-1 flex flex-col items-center justify-center">
             <div class="relative w-20 h-20 mb-6">
                 <div class="absolute inset-0 border-4 border-slate-800 rounded-full"></div>
                 <div class="absolute inset-0 border-4 border-t-blue-500 rounded-full animate-spin"></div>
@@ -165,50 +170,56 @@
         </div>
 
         <!-- VISTA: LOGIN -->
-        <div x-show="vista === 'login'" class="flex-1 flex flex-col items-center justify-center p-4">
+        <div x-show="vista === 'login'" class="flex-1 flex flex-col items-center justify-center">
             <div
-                class="w-full max-w-md bg-slate-900/60 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl">
+                class="w-full max-w-md bg-slate-800/50 backdrop-blur-xl p-8 rounded-3xl border border-slate-700 shadow-2xl">
                 <div class="text-center mb-8">
                     <div
                         class="inline-flex p-4 rounded-2xl bg-blue-500/10 text-4xl mb-4 ring-1 ring-blue-500/20 animate-float">
                         ✈️</div>
-                    <h2 class="text-2xl font-bold text-white">Bienvenido</h2>
-                    <p class="text-slate-400 text-sm mt-2">Plataforma de Entrenamiento</p>
+                    <h2 class="text-2xl font-bold text-white">Bienvenido a Bordo</h2>
+                    <p class="text-slate-400 text-sm mt-2">Inicia sesión para acceder al simulador</p>
                 </div>
 
                 <form @submit.prevent="login" class="space-y-4">
-                    <input type="email" x-model="auth.email"
-                        class="w-full p-4 rounded-xl bg-slate-800/50 border border-slate-700 focus:border-blue-500 outline-none text-white placeholder-slate-500 transition-all"
-                        placeholder="Email">
-                    <input type="password" x-model="auth.password"
-                        class="w-full p-4 rounded-xl bg-slate-800/50 border border-slate-700 focus:border-blue-500 outline-none text-white placeholder-slate-500 transition-all"
-                        placeholder="Contraseña">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Email</label>
+                        <input type="email" x-model="auth.email"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                            placeholder="usuario@aerolinea.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Contraseña</label>
+                        <input type="password" x-model="auth.password"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                            placeholder="••••••••">
+                    </div>
                     <button type="submit" :disabled="cargandoAuth"
-                        class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:to-blue-500 disabled:opacity-50 py-4 rounded-xl font-bold shadow-lg transition-all transform active:scale-95">
-                        <span x-show="!cargandoAuth">Ingresar</span>
-                        <span x-show="cargandoAuth">Verificando...</span>
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/20 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-2">
+                        <span x-show="!cargandoAuth">Ingresar al Cockpit</span>
+                        <span x-show="cargandoAuth" class="animate-pulse">Verificando credenciales...</span>
                     </button>
                 </form>
 
                 <div class="mt-6 pt-6 border-t border-slate-700/50 text-center">
                     <button @click="loginAnonimo"
                         class="text-slate-400 hover:text-white text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto">
-                        <span>🕵️‍♂️</span> Entrar como Invitado
+                        <span>🕵️‍♂️</span> Acceso Invitado
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- VISTA: MENU -->
-        <div x-show="vista === 'menu'" class="flex-1 flex flex-col justify-center p-4">
-
+        <div x-show="vista === 'menu'" class="flex-1 flex flex-col justify-center">
+            <!-- Recuperar Sesión Alert -->
             <div x-show="sesionGuardada" @click="recuperarSesion"
                 class="mb-8 bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-yellow-500/20 transition-all group">
                 <div class="flex items-center gap-4">
                     <div class="p-2 bg-yellow-500/20 rounded-lg text-yellow-500">⚠️</div>
                     <div>
-                        <h3 class="font-bold text-yellow-400">Sesión Pendiente</h3>
-                        <p class="text-xs text-yellow-200/60">Continuar donde lo dejaste</p>
+                        <h3 class="font-bold text-yellow-400">Sesión Pendiente Detectada</h3>
+                        <p class="text-xs text-yellow-200/60">Haz clic para continuar tu último vuelo</p>
                     </div>
                 </div>
                 <div class="text-yellow-500 group-hover:translate-x-1 transition-transform">➜</div>
@@ -217,96 +228,105 @@
             <div class="grid md:grid-cols-3 gap-6">
                 <!-- Card: Estudio General -->
                 <button @click="cargarPreguntas('nuevas')"
-                    class="group relative overflow-hidden rounded-3xl bg-slate-800/80 border border-white/5 hover:border-blue-500/50 transition-all text-left h-64 flex flex-col justify-between p-6 hover:shadow-2xl hover:shadow-blue-900/20">
+                    class="group relative overflow-hidden rounded-3xl bg-slate-800 border border-slate-700 hover:border-blue-500/50 transition-all duration-300 text-left h-64 flex flex-col justify-between p-6 hover:shadow-2xl hover:shadow-blue-900/20">
                     <div
                         class="absolute top-0 right-0 p-32 bg-blue-600/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/20 transition-all">
                     </div>
                     <div class="relative z-10">
                         <div
-                            class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
+                            class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
                             📚</div>
                         <h3 class="text-2xl font-bold text-white mb-2">Estudio General</h3>
-                        <p class="text-slate-400 text-sm">Preguntas aleatorias de todo el banco.</p>
+                        <p class="text-slate-400 text-sm leading-relaxed">Modo estándar. Preguntas aleatorias de todos
+                            los sistemas.</p>
                     </div>
                     <div
                         class="relative z-10 flex items-center text-blue-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
                         Comenzar <span class="ml-2">→</span></div>
                 </button>
 
-                <!-- Card: Sistemas (ATA) - CON SELECTOR AUTOMÁTICO -->
+                <!-- Card: Sistemas (ATA) -->
                 <div
-                    class="rounded-3xl bg-slate-800/80 border border-white/5 p-6 flex flex-col justify-between h-64 relative overflow-hidden">
+                    class="rounded-3xl bg-slate-800 border border-slate-700 p-6 flex flex-col justify-between h-64 relative overflow-hidden">
                     <div class="absolute bottom-0 left-0 p-32 bg-purple-600/10 rounded-full blur-3xl -ml-16 -mb-16">
                     </div>
-                    <div class="relative z-10 w-full">
+                    <div class="relative z-10">
                         <div
                             class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center text-3xl mb-4">
                             ⚙️</div>
                         <h3 class="text-2xl font-bold text-white mb-2">Por Sistemas</h3>
-                        <p class="text-slate-400 text-sm mb-4">Selecciona un capítulo ATA.</p>
+                        <p class="text-slate-400 text-sm mb-4">Enfócate en un capítulo ATA específico.</p>
 
-                        <div class="relative">
+                        <div class="flex gap-2">
                             <select x-model="ataSeleccionado"
                                 @change="if(ataSeleccionado) cargarPreguntas(parseInt(ataSeleccionado))"
-                                class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-purple-500 appearance-none cursor-pointer hover:bg-slate-800 transition-colors">
+                                class="flex-1 bg-slate-900 border border-slate-600 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-purple-500 cursor-pointer">
                                 <option value="">Seleccionar ATA...</option>
                                 <template x-for="ata in atas" :key="ata.id">
                                     <option :value="ata.id" x-text="`${ata.id} - ${ata.nombre}`"></option>
                                 </template>
                             </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Card: Fallos -->
                 <button @click="cargarPreguntas('fallos')"
-                    class="group relative overflow-hidden rounded-3xl bg-slate-800/80 border border-white/5 hover:border-red-500/50 transition-all text-left h-64 flex flex-col justify-between p-6 hover:shadow-2xl hover:shadow-red-900/20">
+                    class="group relative overflow-hidden rounded-3xl bg-slate-800 border border-slate-700 hover:border-red-500/50 transition-all duration-300 text-left h-64 flex flex-col justify-between p-6 hover:shadow-2xl hover:shadow-red-900/20">
                     <div
                         class="absolute top-0 left-0 p-32 bg-red-600/10 rounded-full blur-3xl -ml-16 -mt-16 group-hover:bg-red-600/20 transition-all">
                     </div>
                     <div class="relative z-10">
                         <div
-                            class="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">
+                            class="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
                             ⚠️</div>
                         <h3 class="text-2xl font-bold text-white mb-2">Repasar Fallos</h3>
-                        <p class="text-slate-400 text-sm">Ataca tus puntos débiles.</p>
+                        <p class="text-slate-400 text-sm leading-relaxed">Vuelve a intentar las preguntas que fallaste
+                            anteriormente.</p>
                     </div>
                     <div
                         class="relative z-10 flex items-center text-red-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                        Repasar <span class="ml-2">→</span></div>
+                        Repasar Ahora <span class="ml-2">→</span></div>
                 </button>
             </div>
         </div>
 
-        <!-- VISTA: QUIZ (DISEÑO PREMIUM) -->
-        <div x-show="vista === 'quiz'" class="flex-1 flex flex-col gap-6 p-4">
+        <!-- VISTA: QUIZ -->
+        <div x-show="vista === 'quiz'" class="flex-1 flex flex-col gap-6">
 
-            <!-- Top Stats -->
-            <div class="grid grid-cols-4 gap-3">
-                <div class="bg-slate-800/60 backdrop-blur p-3 rounded-xl border border-white/5 text-center">
-                    <div class="text-xs text-slate-400 uppercase font-bold">Total</div>
-                    <div class="text-xl font-black text-white" x-text="preguntas.length"></div>
-                </div>
-                <div class="bg-slate-800/60 backdrop-blur p-3 rounded-xl border border-emerald-500/20 text-center">
-                    <div class="text-xs text-emerald-400/70 uppercase font-bold">Bien</div>
-                    <div class="text-xl font-black text-emerald-400" x-text="stats.correctas"></div>
-                </div>
-                <div class="bg-slate-800/60 backdrop-blur p-3 rounded-xl border border-red-500/20 text-center">
-                    <div class="text-xs text-red-400/70 uppercase font-bold">Mal</div>
-                    <div class="text-xl font-black text-red-400" x-text="stats.incorrectas"></div>
-                </div>
-                <div class="bg-slate-800/60 backdrop-blur p-3 rounded-xl border border-purple-500/20 text-center">
-                    <div class="text-xs text-purple-400/70 uppercase font-bold">Racha</div>
-                    <div class="text-xl font-black text-purple-400 flex items-center justify-center gap-1">
-                        <span x-show="stats.racha > 2">🔥</span><span x-text="stats.racha"></span>
+            <!-- Top Stats Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div
+                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-blue-500 shadow-lg flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total</p>
+                        <p class="text-2xl font-black text-white" x-text="preguntas.length"></p>
                     </div>
+                    <div class="text-2xl opacity-50">🟦</div>
+                </div>
+                <div
+                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-emerald-500 shadow-lg flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Aciertos</p>
+                        <p class="text-2xl font-black text-emerald-400" x-text="stats.correctas"></p>
+                    </div>
+                    <div class="text-2xl opacity-50">🟩</div>
+                </div>
+                <div
+                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-red-500 shadow-lg flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Fallos</p>
+                        <p class="text-2xl font-black text-red-400" x-text="stats.incorrectas"></p>
+                    </div>
+                    <div class="text-2xl opacity-50">🟥</div>
+                </div>
+                <div
+                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-purple-500 shadow-lg flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Racha</p>
+                        <p class="text-2xl font-black text-purple-400" x-text="stats.racha"></p>
+                    </div>
+                    <div class="text-2xl opacity-50">🔥</div>
                 </div>
             </div>
 
@@ -316,89 +336,47 @@
                     :style="`width: ${progresoPorcentaje}%`"></div>
             </div>
 
-            <!-- Tarjeta de Pregunta (Split Header Design) -->
+            <!-- Question Card -->
             <div
-                class="bg-slate-800 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col relative">
-
-                <!-- Header Azul Sólido -->
-                <div
-                    class="bg-blue-600 p-6 md:p-8 text-center relative z-10 flex flex-col justify-center min-h-[140px]">
-                    <div class="absolute top-4 right-4 opacity-20 text-4xl">✈️</div>
-                    <span
-                        class="inline-block text-blue-200 text-xs font-bold tracking-widest uppercase mb-2 border border-blue-400/30 px-2 py-0.5 rounded-full self-center"
-                        x-text="`PREGUNTA ${preguntas[indiceActual]?.numero}`"></span>
-                    <h3 class="text-xl md:text-2xl font-bold text-white leading-snug drop-shadow-md"
-                        x-text="preguntaActual?.texto"></h3>
+                class="flex-1 flex flex-col bg-slate-800 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
+                <!-- Header Azul -->
+                <div class="bg-blue-600 p-6 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="bg-white/20 px-3 py-1 rounded-lg text-xs font-bold text-white border border-white/10"
+                            x-text="`PREGUNTA ${preguntaActual?.numero || '...'}`"></span>
+                    </div>
+                    <button @click="pausarQuiz"
+                        class="text-blue-100 hover:text-white transition-colors text-xs font-bold">
+                        PAUSAR / SALIR
+                    </button>
                 </div>
 
-                <!-- Cuerpo con Opciones Manuales (A, B, C, D) -->
-                <div class="p-6 bg-slate-900 flex flex-col gap-4">
+                <!-- Body -->
+                <div class="p-6 md:p-8 flex-1 flex flex-col">
+                    <h2 class="text-xl md:text-2xl font-bold text-white leading-relaxed mb-8"
+                        x-text="preguntaActual?.texto"></h2>
 
-                    <!-- Opción A -->
-                    <button @click="responder('A')" :disabled="bloqueado" :class="claseBoton('A')"
-                        class="group w-full p-4 rounded-xl text-left border-2 transition-all duration-200 flex items-center gap-4 relative overflow-hidden">
-                        <div :class="estiloLetra('A')"
-                            class="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold shrink-0 transition-colors border-2">
-                            A</div>
-                        <span
-                            class="text-base md:text-lg font-medium text-slate-300 group-hover:text-white transition-colors"
-                            x-text="preguntaActual?.opcion_a"></span>
-                    </button>
-
-                    <!-- Opción B -->
-                    <button @click="responder('B')" :disabled="bloqueado" :class="claseBoton('B')"
-                        class="group w-full p-4 rounded-xl text-left border-2 transition-all duration-200 flex items-center gap-4 relative overflow-hidden">
-                        <div :class="estiloLetra('B')"
-                            class="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold shrink-0 transition-colors border-2">
-                            B</div>
-                        <span
-                            class="text-base md:text-lg font-medium text-slate-300 group-hover:text-white transition-colors"
-                            x-text="preguntaActual?.opcion_b"></span>
-                    </button>
-
-                    <!-- Opción C (Solo si existe) -->
-                    <button x-show="preguntaActual?.opcion_c" @click="responder('C')" :disabled="bloqueado"
-                        :class="claseBoton('C')"
-                        class="group w-full p-4 rounded-xl text-left border-2 transition-all duration-200 flex items-center gap-4 relative overflow-hidden">
-                        <div :class="estiloLetra('C')"
-                            class="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold shrink-0 transition-colors border-2">
-                            C</div>
-                        <span
-                            class="text-base md:text-lg font-medium text-slate-300 group-hover:text-white transition-colors"
-                            x-text="preguntaActual?.opcion_c"></span>
-                    </button>
-
-                    <!-- Opción D (Solo si existe) -->
-                    <button x-show="preguntaActual?.opcion_d" @click="responder('D')" :disabled="bloqueado"
-                        :class="claseBoton('D')"
-                        class="group w-full p-4 rounded-xl text-left border-2 transition-all duration-200 flex items-center gap-4 relative overflow-hidden">
-                        <div :class="estiloLetra('D')"
-                            class="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold shrink-0 transition-colors border-2">
-                            D</div>
-                        <span
-                            class="text-base md:text-lg font-medium text-slate-300 group-hover:text-white transition-colors"
-                            x-text="preguntaActual?.opcion_d"></span>
-                    </button>
-
+                    <div class="grid gap-4">
+                        <template x-for="letra in ['A', 'B', 'C', 'D']">
+                            <button @click="responder(letra)" :disabled="bloqueado"
+                                class="group relative w-full p-5 rounded-2xl text-left border-2 transition-all duration-200 flex items-start gap-4"
+                                :class="claseBoton(letra)">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
+                                    :class="estiloLetra(letra)" x-text="letra"></div>
+                                <span
+                                    class="text-sm md:text-base font-medium text-slate-200 group-hover:text-white transition-colors"
+                                    x-text="obtenerTextoOpcion(letra)"></span>
+                            </button>
+                        </template>
+                    </div>
                 </div>
             </div>
 
-            <!-- Bottom Bar -->
-            <div class="flex justify-between items-center mt-2">
-                <button @click="pausarQuiz"
-                    class="text-slate-500 hover:text-white text-sm font-medium transition-colors flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Pausar / Salir
-                </button>
-            </div>
-
-            <!-- Botón Siguiente Flotante -->
-            <div x-show="mostrarSiguiente" class="sticky bottom-4 z-30" x-transition.slide.up>
+            <!-- Next Button -->
+            <div x-show="mostrarSiguiente" class="sticky bottom-4 z-20" x-transition.slide.up>
                 <button @click="siguientePregunta"
-                    class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-xl shadow-blue-900/50 flex items-center justify-center gap-2 transition-all transform active:scale-95">
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-xl shadow-blue-900/40 flex items-center justify-center gap-2 transition-all transform active:scale-95">
                     <span>Siguiente Pregunta</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -409,33 +387,31 @@
         </div>
 
         <!-- VISTA: FIN -->
-        <div x-show="vista === 'fin'" class="flex-1 flex flex-col items-center justify-center text-center p-4">
+        <div x-show="vista === 'fin'" class="flex-1 flex flex-col items-center justify-center text-center">
             <div
-                class="bg-slate-800/90 backdrop-blur p-8 rounded-3xl border border-white/10 shadow-2xl w-full max-w-lg relative overflow-hidden">
+                class="bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl w-full max-w-lg relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
-
-                <h2 class="text-3xl font-black text-white mb-2">¡Sesión Finalizada!</h2>
-                <p class="text-slate-400 mb-8">Resultados de tu entrenamiento</p>
+                <h2 class="text-3xl font-black text-white mb-2">¡Misión Cumplida!</h2>
+                <p class="text-slate-400 mb-8">Resumen de tu sesión</p>
 
                 <div class="relative w-48 h-48 mx-auto mb-8">
                     <canvas id="chartResultados"></canvas>
                     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                         <span class="text-4xl font-black text-white" x-text="`${porcentajeAcierto}%`"></span>
-                        <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Precisión</span>
+                        <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Efectividad</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mb-8">
                     <div class="bg-slate-900/50 p-4 rounded-2xl border border-emerald-500/20">
                         <p class="text-3xl font-black text-emerald-400" x-text="stats.correctas"></p>
-                        <p class="text-xs text-slate-500 uppercase font-bold">Aciertos</p>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Correctas</p>
                     </div>
                     <div class="bg-slate-900/50 p-4 rounded-2xl border border-red-500/20">
                         <p class="text-3xl font-black text-red-400" x-text="stats.incorrectas"></p>
-                        <p class="text-xs text-slate-500 uppercase font-bold">Errores</p>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Incorrectas</p>
                     </div>
                 </div>
-
                 <button @click="volverAlMenu"
                     class="w-full bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl font-bold transition-all">Volver
                     al Menú</button>
@@ -444,314 +420,9 @@
 
     </div>
 
-    <script>
-        // CONFIGURACIÓN SUPABASE
-        const SUPABASE_URL = 'https://kvqstfjvvnmwgutckdev.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2cXN0Zmp2dm5td2d1dGNrZGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NjY2MjIsImV4cCI6MjA3OTE0MjYyMn0.i2Q2XpaV3MUhLDwrnXqaJI1a-G2cM74fr0W4HRo6RI0';
+    <!-- SCRIPT DE LÓGICA PRINCIPAL -->
+    <script src="./src/js/app.js"></script>
 
-        const { createClient } = window.supabase;
-        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        function app() {
-            return {
-                // Estado Global
-                vista: 'cargando',
-                mensajeCarga: 'Iniciando sistemas...',
-                auth: { email: '', password: '', user: null },
-                cargandoAuth: false,
-
-                // Datos
-                atas: [],
-                ataSeleccionado: '',
-
-                // Quiz
-                modo: '',
-                preguntas: [],
-                indiceActual: 0,
-                bloqueado: false,
-                seleccionada: null,
-                mostrarSiguiente: false,
-                sesionGuardada: false,
-                stats: { correctas: 0, incorrectas: 0, racha: 0 },
-
-                // UX
-                toast: { visible: false, mensaje: '', tipo: 'info' },
-                chartInstance: null,
-
-                // Getters Computados
-                get preguntaActual() { return this.preguntas[this.indiceActual]; },
-                get modoTexto() { return { 'nuevas': 'Estudio General', 'ata': 'Categoría ATA', 'fallos': 'Repaso' }[this.modo] || 'Quiz'; },
-                get progresoPorcentaje() { return this.preguntas.length ? ((this.indiceActual + 1) / this.preguntas.length) * 100 : 0; },
-                get porcentajeAcierto() {
-                    const total = this.stats.correctas + this.stats.incorrectas;
-                    return total === 0 ? 0 : Math.round((this.stats.correctas / total) * 100);
-                },
-                get nivelUsuario() {
-                    const score = this.stats.correctas;
-                    if (score < 50) return 'Cadete';
-                    if (score < 150) return 'Primer Oficial';
-                    return 'Capitán';
-                },
-
-                // Inicialización
-                async initApp() {
-                    this.checkLocalStorage();
-                    // Descomentar Service Worker para producción
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
-                    }
-
-                    try {
-                        const { data } = await sb.auth.getSession();
-                        if (data.session) {
-                            this.auth.user = data.session.user;
-                            await this.cargarAtas();
-                            this.vista = 'menu';
-                        } else {
-                            this.vista = 'login';
-                        }
-                    } catch (e) {
-                        this.showToast("Error de conexión", 'error');
-                        this.vista = 'login';
-                    }
-                },
-
-                // Funciones de Carga
-                async cargarAtas() {
-                    const { data } = await sb.from('atas').select('id, nombre').order('id');
-                    if (data) this.atas = data;
-                },
-
-                checkLocalStorage() {
-                    this.sesionGuardada = !!localStorage.getItem('b787_sesion');
-                },
-
-                // Autenticación
-                async login() {
-                    if (!this.auth.email.includes('@')) return this.showToast("Email inválido", 'error');
-                    if (this.auth.password.length < 6) return this.showToast("Contraseña corta", 'error');
-
-                    this.cargandoAuth = true;
-                    const { data, error } = await sb.auth.signInWithPassword(this.auth);
-                    this.cargandoAuth = false;
-
-                    if (error) {
-                        this.showToast("Credenciales incorrectas", 'error');
-                    } else {
-                        this.auth.user = data.user;
-                        await this.cargarAtas();
-                        this.vista = 'menu';
-                    }
-                },
-
-                async loginAnonimo() {
-                    this.cargandoAuth = true;
-                    const { data, error } = await sb.auth.signInAnonymously();
-                    this.cargandoAuth = false;
-
-                    if (error) this.showToast("Error acceso invitado", 'error');
-                    else {
-                        this.auth.user = data.user;
-                        await this.cargarAtas();
-                        this.vista = 'menu';
-                    }
-                },
-
-                async logout() {
-                    await sb.auth.signOut();
-                    this.auth.user = null;
-                    localStorage.removeItem('b787_sesion');
-                    this.vista = 'login';
-                },
-
-                // Lógica de Quiz
-                recuperarSesion() {
-                    try {
-                        const saved = JSON.parse(localStorage.getItem('b787_sesion'));
-                        if (saved) {
-                            this.preguntas = saved.preguntas;
-                            this.indiceActual = saved.indiceActual;
-                            this.stats = saved.stats;
-                            this.modo = saved.modo;
-                            this.vista = 'quiz';
-                        }
-                    } catch (e) { localStorage.removeItem('b787_sesion'); }
-                },
-
-                async cargarPreguntas(entrada) {
-                    this.vista = 'cargando';
-                    this.mensajeCarga = 'Cargando banco de preguntas...';
-                    this.modo = (entrada === 'nuevas' || entrada === 'fallos') ? entrada : 'ata';
-                    this.resetStats();
-
-                    try {
-                        let rpc = this.modo === 'fallos' ? 'repasar_falladas' : 'estudiar_preguntas';
-                        let params = {};
-
-                        if (this.modo === 'nuevas') params = { filtro_ata_id: null };
-                        else if (this.modo === 'ata') params = { filtro_ata_id: parseInt(entrada) };
-
-                        const { data, error } = await sb.rpc(rpc, params);
-
-                        if (error) throw error;
-                        if (!data || data.length === 0) {
-                            this.showToast('No hay preguntas pendientes.', 'info');
-                            this.volverAlMenu();
-                            return;
-                        }
-
-                        this.preguntas = data;
-                        this.indiceActual = 0;
-                        this.guardarEstadoLocal();
-                        this.vista = 'quiz';
-
-                    } catch (e) {
-                        this.showToast('Error cargando preguntas', 'error');
-                        this.volverAlMenu();
-                    }
-                },
-
-                async responder(letra) {
-                    if (this.bloqueado) return;
-                    this.bloqueado = true;
-                    this.seleccionada = letra;
-
-                    const esCorrecta = letra === this.preguntaActual.correcta;
-
-                    if (esCorrecta) {
-                        this.stats.correctas++;
-                        this.stats.racha++;
-                        if (this.stats.racha > 0 && this.stats.racha % 5 === 0) {
-                            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                        }
-                    } else {
-                        this.stats.incorrectas++;
-                        this.stats.racha = 0;
-                        if (navigator.vibrate) navigator.vibrate(200);
-                    }
-
-                    sb.rpc('registrar_respuesta', {
-                        p_pregunta_id: this.preguntaActual.id,
-                        es_correcta: esCorrecta
-                    });
-
-                    this.guardarEstadoLocal();
-
-                    if (esCorrecta) {
-                        setTimeout(() => this.siguientePregunta(), 1000);
-                    } else {
-                        this.mostrarSiguiente = true;
-                    }
-                },
-
-                siguientePregunta() {
-                    if (this.indiceActual < this.preguntas.length - 1) {
-                        this.indiceActual++;
-                        this.bloqueado = false;
-                        this.seleccionada = null;
-                        this.mostrarSiguiente = false;
-                        this.guardarEstadoLocal();
-                    } else {
-                        this.finalizarSesion();
-                    }
-                },
-
-                handleTeclado(e) {
-                    if (this.vista !== 'quiz') return;
-                    if (this.mostrarSiguiente && e.key === 'Enter') return this.siguientePregunta();
-                    if (this.bloqueado) return;
-                    const key = e.key.toUpperCase();
-                    if (['A', 'B', 'C', 'D'].includes(key)) this.responder(key);
-                },
-
-                // Utilidades
-                guardarEstadoLocal() {
-                    localStorage.setItem('b787_sesion', JSON.stringify({
-                        preguntas: this.preguntas, indiceActual: this.indiceActual, stats: this.stats, modo: this.modo
-                    }));
-                },
-
-                finalizarSesion() {
-                    this.vista = 'fin';
-                    localStorage.removeItem('b787_sesion');
-                    this.sesionGuardada = false;
-
-                    if (this.porcentajeAcierto >= 80) {
-                        const end = Date.now() + 3000;
-                        (function frame() {
-                            confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
-                            confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } });
-                            if (Date.now() < end) requestAnimationFrame(frame);
-                        }());
-                    }
-                    this.$nextTick(() => this.renderChart());
-                },
-
-                pausarQuiz() {
-                    this.guardarEstadoLocal();
-                    this.sesionGuardada = true;
-                    this.volverAlMenu();
-                },
-
-                volverAlMenu() {
-                    if (this.vista === 'fin') this.resetStats();
-                    this.preguntas = [];
-                    this.vista = 'menu';
-                    this.ataSeleccionado = '';
-                },
-
-                resetStats() {
-                    this.stats = { correctas: 0, incorrectas: 0, racha: 0 };
-                    this.bloqueado = false;
-                    this.seleccionada = null;
-                    this.mostrarSiguiente = false;
-                },
-
-                showToast(msg, tipo) {
-                    this.toast = { visible: true, mensaje: msg, tipo };
-                    setTimeout(() => this.toast.visible = false, 3000);
-                },
-
-                renderChart() {
-                    const ctx = document.getElementById('chartResultados');
-                    if (this.chartInstance) this.chartInstance.destroy();
-                    this.chartInstance = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Correctas', 'Incorrectas'],
-                            datasets: [{
-                                data: [this.stats.correctas, this.stats.incorrectas],
-                                backgroundColor: ['#10b981', '#ef4444'],
-                                borderWidth: 0
-                            }]
-                        },
-                        options: { responsive: true, cutout: '75%', plugins: { legend: { display: false } } }
-                    });
-                },
-
-                // Estilos Dinámicos para los Botones Manuales (A,B,C,D)
-                claseBoton(letra) {
-                    if (!this.bloqueado) return 'border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-blue-500 hover:ring-1 hover:ring-blue-500 cursor-pointer';
-
-                    if (letra === this.preguntaActual.correcta)
-                        return 'bg-emerald-500/10 border-emerald-500 text-emerald-400 ring-1 ring-emerald-500';
-
-                    if (letra === this.seleccionada && letra !== this.preguntaActual.correcta)
-                        return 'bg-red-500/10 border-red-500 text-red-400 shake ring-1 ring-red-500';
-
-                    return 'border-slate-800 opacity-30 cursor-not-allowed';
-                },
-
-                estiloLetra(letra) {
-                    if (this.bloqueado) {
-                        if (letra === this.preguntaActual.correcta) return 'bg-emerald-500 text-slate-900 border-emerald-500';
-                        if (letra === this.seleccionada) return 'bg-red-500 text-white border-red-500';
-                    }
-                    return 'bg-slate-800 border-slate-600 text-slate-400 group-hover:bg-blue-600 group-hover:border-blue-600 group-hover:text-white';
-                }
-            }
-        }
-    </script>
 </body>
 
 </html>
