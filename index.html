@@ -149,540 +149,140 @@
         <div x-show="vista === 'menu'" class="flex-1 p-6 flex flex-col">
             <!-- Header Usuario -->
             <div class="flex justify-between items-center mb-8">
-                <div class="flex items-center gap-3">
-                    <div
-                        class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xl shadow-lg">
-                        👨‍✈️
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-bold text-white leading-tight">Hola, Piloto</h2>
-                        <div class="flex items-center gap-2">
-                            <span
-                                class="text-xs font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                                x-text="nivelUsuario"></span>
-                        </div>
-                    </div>
-                </div>
-                <button @click="logout"
-                    class="w-10 h-10 rounded-full bg-slate-800/50 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:bg-red-500/20 hover:border-red-500/50 transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                </button>
-            </div>
 
-            <!-- Recuperar Sesión -->
-            <div x-show="sesionGuardada"
-                class="mb-6 glass p-4 rounded-2xl border-l-4 border-yellow-500 animate-pulse cursor-pointer hover:bg-slate-800/60 transition"
-                @click="recuperarSesion">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-yellow-400 font-bold text-sm">Sesión Activa</p>
-                        <p class="text-xs text-slate-400">Continuar donde lo dejaste</p>
-                    </div>
-                    <div class="bg-yellow-500/20 p-2 rounded-lg text-yellow-400">➜</div>
-                </div>
-            </div>
-
-            <div class="space-y-4 flex-1 overflow-y-auto custom-scrollbar">
-                <!-- Botón General -->
-                <button @click="cargarPreguntas('nuevas')"
-                    class="w-full group relative overflow-hidden rounded-2xl p-1 transition-all hover:scale-[1.02]">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 opacity-80 group-hover:opacity-100 transition-opacity">
-                    </div>
-                    <div
-                        class="relative bg-slate-900/90 p-5 rounded-xl h-full flex items-center gap-4 border border-white/5">
-                        <div class="text-3xl bg-blue-500/20 p-3 rounded-xl">📚</div>
-                        <div class="text-left">
-                            <h3 class="font-bold text-lg text-white">Estudio General</h3>
-                            <p class="text-xs text-slate-400">Preguntas nuevas y pendientes</p>
-                        </div>
-                    </div>
-                </button>
-
-                <!-- Selector ATA -->
-                <div class="glass p-5 rounded-2xl border border-slate-700/50">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 block">Sistemas
-                        (ATA)</label>
-                    <div class="flex gap-3">
-                        <div class="relative flex-1">
-                            <select x-model="ataSeleccionado"
-                                class="w-full appearance-none bg-slate-800 text-white p-3 pl-4 pr-10 rounded-xl border border-slate-600 focus:border-blue-500 outline-none text-sm transition-colors">
-                                <option value="">Seleccionar Sistema...</option>
-                                <template x-for="ata in atas" :key="ata.id">
-                                    <option :value="ata.id" x-text="`${ata.id} - ${ata.nombre}`"></option>
-                                </template>
-                            </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <button @click="cargarPreguntas(parseInt(ataSeleccionado))" :disabled="!ataSeleccionado"
-                            class="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed px-5 rounded-xl font-bold transition-all shadow-lg shadow-purple-900/20 flex items-center justify-center">
-                            Ir
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Botón Fallos -->
-                <button @click="cargarPreguntas('fallos')"
-                    class="w-full group relative overflow-hidden rounded-2xl p-1 transition-all hover:scale-[1.02]">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 opacity-80 group-hover:opacity-100 transition-opacity">
-                    </div>
-                    <div
-                        class="relative bg-slate-900/90 p-5 rounded-xl h-full flex items-center gap-4 border border-white/5">
-                        <div class="text-3xl bg-orange-500/20 p-3 rounded-xl">⚡</div>
-                        <div class="text-left">
-                            <h3 class="font-bold text-lg text-white">Repasar Fallos</h3>
-                            <p class="text-xs text-slate-400">Domina tus puntos débiles</p>
-                        </div>
-                    </div>
-                </button>
-            </div>
-        </div>
-
-        <!-- VISTA: QUIZ -->
-        <div x-show="vista === 'quiz'" class="flex-1 flex flex-col relative">
-            <!-- Top Bar -->
-            <div class="glass p-4 z-20 flex flex-col gap-3">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <button @click="pausarQuiz" class="text-slate-400 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                        </button>
-                        <span class="text-sm font-bold text-slate-200" x-text="modoTexto"></span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div x-show="stats.racha > 1"
-                            class="flex items-center gap-1 bg-orange-500/20 px-2 py-1 rounded-lg border border-orange-500/30 pop">
-                            <span class="text-lg">🔥</span>
-                            <span class="text-orange-400 font-black text-sm" x-text="stats.racha"></span>
-                        </div>
-                    </div>
-                </div>
-                <!-- Progress Bar -->
-                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
-                    <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                        :style="`width: ${progresoPorcentaje}%`"></div>
-                </div>
-            </div>
-
-            <!-- Question Area -->
-            <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                <div class="mb-8 animate-fade-in-up">
-                    <span
-                        class="inline-block px-2 py-1 rounded bg-slate-800 text-blue-400 text-xs font-mono mb-3 border border-slate-700"
-                        x-text="`ID: ${preguntaActual?.numero}`"></span>
-                    <h3 class="text-xl md:text-2xl font-bold leading-snug text-white drop-shadow-sm"
-                        x-text="preguntaActual?.texto"></h3>
-                </div>
-
-                <div class="space-y-3 pb-24">
-                    <template x-for="letra in ['A', 'B', 'C', 'D']">
-                        <button @click="responder(letra)" :disabled="bloqueado" role="button" tabindex="0"
-                            class="w-full p-4 rounded-2xl text-left border transition-all duration-200 relative group focus:outline-none"
-                            :class="claseBoton(letra)">
-                            <div class="flex items-start gap-4">
-                                <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-colors duration-200 shadow-sm"
-                                    :class="estiloLetra(letra)" x-text="letra"></div>
-                                <span class="text-sm md:text-base text-slate-200 font-medium pt-1"
-                                    x-text="obtenerTextoOpcion(letra)"></span>
-                            </div>
-                        </button>
-                    </template>
-                </div>
-            </div>
-
-            <!-- Bottom Action Bar -->
-            <div x-show="mostrarSiguiente"
-                class="absolute bottom-0 left-0 right-0 p-4 glass border-t border-white/5 z-30" x-transition.slide.up>
-                <button @click="siguientePregunta"
-                    class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-900/40 transform active:scale-95 transition flex items-center justify-center gap-2">
-                    <span>Siguiente Pregunta</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- VISTA: FIN -->
-        <div x-show="vista === 'fin'"
-            class="flex-1 flex flex-col items-center justify-center p-6 text-center overflow-y-auto">
-            <div class="w-full max-w-xs mx-auto mb-6 relative">
-                <canvas id="chartResultados"></canvas>
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span class="text-4xl font-black text-white" x-text="`${porcentajeAcierto}%`"></span>
-                    <span class="text-xs text-slate-400 uppercase tracking-widest">Precisión</span>
-                </div>
-            </div>
-
-            <h2 class="text-2xl font-bold text-white mb-2">¡Sesión Finalizada!</h2>
-            <p class="text-slate-400 text-sm mb-8">Has completado tu racha de estudio.</p>
-
-            <div class="grid grid-cols-2 gap-4 w-full mb-8">
-                <div class="bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/20 flex flex-col items-center">
-                    <span class="text-3xl mb-1">✅</span>
-                    <p class="text-2xl font-bold text-emerald-400" x-text="stats.correctas"></p>
-                    <p class="text-xs text-emerald-200/70 uppercase font-bold">Correctas</p>
-                </div>
-                <div class="bg-red-500/10 p-4 rounded-2xl border border-red-500/20 flex flex-col items-center">
-                    <span class="text-3xl mb-1">❌</span>
-                    <p class="text-2xl font-bold text-red-400" x-text="stats.incorrectas"></p>
-                    <p class="text-xs text-red-200/70 uppercase font-bold">Incorrectas</p>
-                </div>
-            </div>
-
-            <button @click="volverAlMenu"
-                class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white py-4 rounded-2xl font-bold transition shadow-lg">
-                Volver al Menú
-            </button>
-        </div>
-
-    </div>
-
-    <script>
-        // Configuración Supabase
-        const SUPABASE_URL = 'https://kvqstfjvvnmwgutckdev.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2cXN0Zmp2dm5td2d1dGNrZGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NjY2MjIsImV4cCI6MjA3OTE0MjYyMn0.i2Q2XpaV3MUhLDwrnXqaJI1a-G2cM74fr0W4HRo6RI0';
-
-        const { createClient } = window.supabase;
-        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        function app() {
-            return {
-                vista: 'cargando',
-                mensajeCarga: 'Iniciando sistemas...',
-                auth: { email: '', password: '', user: null },
-                cargandoAuth: false,
-                atas: [],
-                ataSeleccionado: '',
-                toast: { visible: false, mensaje: '', tipo: 'info' },
-
-                modo: '',
-                preguntas: [],
-                indiceActual: 0,
-                bloqueado: false,
-                seleccionada: null,
-                mostrarSiguiente: false,
-                sesionGuardada: false,
-                stats: { correctas: 0, incorrectas: 0, racha: 0 },
-                chartInstance: null,
-
-                get preguntaActual() { return this.preguntas[this.indiceActual]; },
-                get modoTexto() {
-                    const map = { 'nuevas': 'Estudio General', 'ata': 'Por Categoría', 'fallos': 'Repaso de Fallos' };
-                    return map[this.modo] || 'Estudio';
-                },
-                get progresoPorcentaje() {
-                    return this.preguntas.length ? ((this.indiceActual + 1) / this.preguntas.length) * 100 : 0;
-                },
-                get porcentajeAcierto() {
-                    const total = this.stats.correctas + this.stats.incorrectas;
-                    return total === 0 ? 0 : Math.round((this.stats.correctas / total) * 100);
-                },
-                get nivelUsuario() {
-                    // Lógica simple de niveles basada en aciertos totales (simulada con racha actual para demo)
-                    // En una app real, esto vendría de la DB
-                    const score = this.stats.correctas;
-                    if (score < 10) return 'Cadete';
-                    if (score < 50) return 'Primer Oficial';
-                    return 'Capitán';
-                },
-
-                async initApp() {
-                    this.checkLocalStorage();
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
-                    }
-
-                    try {
-                        const { data } = await sb.auth.getSession();
-                        if (data.session) {
-                            this.auth.user = data.session.user;
-                            await this.cargarAtas();
-                            this.vista = 'menu';
-                        } else {
-                            this.vista = 'login';
-                        }
-                    } catch (e) {
-                        this.showToast("Modo Offline / Error de Red", 'error');
-                        this.vista = 'login';
-                    }
-                },
-
-                async cargarAtas() {
-                    const { data } = await sb.from('atas').select('id, nombre').order('id');
-                    if (data) this.atas = data;
-                },
-
-                checkLocalStorage() {
-                    this.sesionGuardada = !!localStorage.getItem('b787_sesion');
-                },
-
-                async login() {
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(this.auth.email)) return this.showToast("Email inválido", 'error');
-                    if (this.auth.password.length < 6) return this.showToast("Contraseña muy corta", 'error');
-
-                    this.cargandoAuth = true;
-                    const { data, error } = await sb.auth.signInWithPassword({
-                        email: this.auth.email,
-                        password: this.auth.password
-                    });
-                    this.cargandoAuth = false;
-
-                    if (error) {
-                        this.showToast("Credenciales incorrectas", 'error');
-                    } else {
-                        this.auth.user = data.user;
-                        await this.cargarAtas();
-                        this.vista = 'menu';
-                    }
-                },
-
-                async loginAnonimo() {
-                    this.cargandoAuth = true;
-                    const { data, error } = await sb.auth.signInAnonymously();
-                    this.cargandoAuth = false;
-
-                    if (error) {
-                        this.showToast("Error al entrar como invitado", 'error');
-                    } else {
-                        this.auth.user = data.user;
-                        await this.cargarAtas();
-                        this.vista = 'menu';
-                        this.showToast("Modo Invitado Activado", 'info');
-                    }
-                },
-
-                async logout() {
-                    await sb.auth.signOut();
-                    this.auth.user = null;
-                    localStorage.removeItem('b787_sesion');
-                    this.vista = 'login';
-                },
-
-                recuperarSesion() {
-                    try {
-                        const saved = JSON.parse(localStorage.getItem('b787_sesion'));
-                        if (saved) {
-                            this.preguntas = saved.preguntas;
-                            this.indiceActual = saved.indiceActual;
-                            this.stats = saved.stats;
-                            this.modo = saved.modo;
-                            this.vista = 'quiz';
-                        }
-                    } catch (e) { localStorage.removeItem('b787_sesion'); }
-                },
-
-                async cargarPreguntas(entrada) {
-                    this.vista = 'cargando';
-                    this.mensajeCarga = 'Descargando datos de vuelo...';
-
-                    this.modo = (entrada === 'nuevas' || entrada === 'fallos') ? entrada : 'ata';
-                    this.resetStats();
-
-                    try {
-                        let rpc = this.modo === 'fallos' ? 'repasar_falladas' : 'estudiar_preguntas';
-                        let params = {};
-
-                        if (this.modo === 'nuevas') {
-                            params = { filtro_ata_id: null };
-                        } else if (this.modo === 'ata') {
-                            const ataIdNumerico = parseInt(entrada);
-                            params = { filtro_ata_id: ataIdNumerico };
-                        }
-
-                        const { data, error } = await sb.rpc(rpc, params);
-
-                        if (error) throw error;
-
-                        if (!data || data.length === 0) {
-                            this.showToast('¡Todo al día! No hay preguntas pendientes.', 'info');
-                            this.volverAlMenu();
-                            return;
-                        }
-
-                        this.preguntas = data;
-                        this.indiceActual = 0;
-                        this.guardarEstadoLocal();
-                        this.vista = 'quiz';
-
-                    } catch (e) {
-                        console.error(e);
-                        this.showToast('Error cargando preguntas', 'error');
-                        this.volverAlMenu();
-                    }
+                } catch (e) {
+                console.error(e);
+                this.showToast('Error cargando preguntas', 'error');
+                this.volverAlMenu();
+                }
                 },
 
                 async responder(letra) {
-                    if (this.bloqueado) return;
-                    this.bloqueado = true;
-                    this.seleccionada = letra;
+                if (this.bloqueado) return;
+                this.bloqueado = true;
+                this.seleccionada = letra;
 
-                    const esCorrecta = letra === this.preguntaActual.correcta;
+                const esCorrecta = letra === this.preguntaActual.correcta;
 
-                    if (esCorrecta) {
-                        this.stats.correctas++;
-                        this.stats.racha++;
-                        // Confetti cada 5 aciertos seguidos
-                        if (this.stats.racha > 0 && this.stats.racha % 5 === 0) {
-                            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                        }
-                    } else {
-                        this.stats.incorrectas++;
-                        this.stats.racha = 0;
-                        if (navigator.vibrate) navigator.vibrate(200);
-                    }
+                if (esCorrecta) {
+                this.stats.correctas++;
+                this.stats.racha++;
+                // Confetti cada 5 aciertos seguidos
+                if (this.stats.racha > 0 && this.stats.racha % 5 === 0) {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }
+                } else {
+                this.stats.incorrectas++;
+                this.stats.racha = 0;
+                if (navigator.vibrate) navigator.vibrate(200);
+                }
 
-                    sb.rpc('registrar_respuesta', {
-                        p_pregunta_id: this.preguntaActual.id,
-                        es_correcta: esCorrecta
-                    });
+                sb.rpc('registrar_respuesta', {
+                p_pregunta_id: this.preguntaActual.id,
+                es_correcta: esCorrecta
+                });
 
-                    this.guardarEstadoLocal();
+                this.guardarEstadoLocal();
 
-                    if (esCorrecta) {
-                        setTimeout(() => this.siguientePregunta(), 1000);
-                    } else {
-                        this.mostrarSiguiente = true;
-                    }
+                if (esCorrecta) {
+                setTimeout(() => this.siguientePregunta(), 1000);
+                } else {
+                this.mostrarSiguiente = true;
+                }
                 },
 
                 siguientePregunta() {
-                    if (this.indiceActual < this.preguntas.length - 1) {
-                        this.indiceActual++;
+                if (this.indiceActual < this.preguntas.length - 1) { this.indiceActual++; this.bloqueado=false;
+                    this.seleccionada=null; this.mostrarSiguiente=false; this.guardarEstadoLocal(); } else {
+                    this.finalizarSesion(); } }, handleTeclado(e) { if (this.vista !=='quiz' ) return; if
+                    (this.mostrarSiguiente && e.key==='Enter' ) return this.siguientePregunta(); if (this.bloqueado)
+                    return; const key=e.key.toUpperCase(); if (['A', 'B' , 'C' , 'D' ].includes(key))
+                    this.responder(key); }, guardarEstadoLocal() { localStorage.setItem('b787_sesion', JSON.stringify({
+                    preguntas: this.preguntas, indiceActual: this.indiceActual, stats: this.stats, modo: this.modo }));
+                    }, finalizarSesion() { this.vista='fin' ; localStorage.removeItem('b787_sesion');
+                    this.sesionGuardada=false; // Disparar Confetti Final si aprobó (>80%)
+                    if (this.porcentajeAcierto >= 80) {
+                    const duration = 3000;
+                    const end = Date.now() + duration;
+                    (function frame() {
+                    confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
+                    confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } });
+                    if (Date.now() < end) requestAnimationFrame(frame); }()); } // Renderizar Gráfico
+                        this.$nextTick(()=> this.renderChart());
+                        },
+
+                        renderChart() {
+                        const ctx = document.getElementById('chartResultados');
+                        if (this.chartInstance) this.chartInstance.destroy();
+
+                        this.chartInstance = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                        labels: ['Correctas', 'Incorrectas'],
+                        datasets: [{
+                        data: [this.stats.correctas, this.stats.incorrectas],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                        }]
+                        },
+                        options: {
+                        responsive: true,
+                        cutout: '75%',
+                        plugins: { legend: { display: false } }
+                        }
+                        });
+                        },
+
+                        pausarQuiz() {
+                        this.guardarEstadoLocal();
+                        this.sesionGuardada = true;
+                        this.volverAlMenu();
+                        },
+
+                        volverAlMenu() {
+                        if (this.vista === 'fin') this.resetStats();
+                        this.preguntas = [];
+                        this.vista = 'menu';
+                        },
+
+                        resetStats() {
+                        this.stats = { correctas: 0, incorrectas: 0, racha: 0 };
                         this.bloqueado = false;
                         this.seleccionada = null;
                         this.mostrarSiguiente = false;
-                        this.guardarEstadoLocal();
-                    } else {
-                        this.finalizarSesion();
-                    }
-                },
-
-                handleTeclado(e) {
-                    if (this.vista !== 'quiz') return;
-                    if (this.mostrarSiguiente && e.key === 'Enter') return this.siguientePregunta();
-                    if (this.bloqueado) return;
-
-                    const key = e.key.toUpperCase();
-                    if (['A', 'B', 'C', 'D'].includes(key)) this.responder(key);
-                },
-
-                guardarEstadoLocal() {
-                    localStorage.setItem('b787_sesion', JSON.stringify({
-                        preguntas: this.preguntas,
-                        indiceActual: this.indiceActual,
-                        stats: this.stats,
-                        modo: this.modo
-                    }));
-                },
-
-                finalizarSesion() {
-                    this.vista = 'fin';
-                    localStorage.removeItem('b787_sesion');
-                    this.sesionGuardada = false;
-
-                    // Disparar Confetti Final si aprobó (>80%)
-                    if (this.porcentajeAcierto >= 80) {
-                        const duration = 3000;
-                        const end = Date.now() + duration;
-                        (function frame() {
-                            confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
-                            confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } });
-                            if (Date.now() < end) requestAnimationFrame(frame);
-                        }());
-                    }
-
-                    // Renderizar Gráfico
-                    this.$nextTick(() => this.renderChart());
-                },
-
-                renderChart() {
-                    const ctx = document.getElementById('chartResultados');
-                    if (this.chartInstance) this.chartInstance.destroy();
-
-                    this.chartInstance = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Correctas', 'Incorrectas'],
-                            datasets: [{
-                                data: [this.stats.correctas, this.stats.incorrectas],
-                                backgroundColor: ['#10b981', '#ef4444'],
-                                borderWidth: 0,
-                                hoverOffset: 4
-                            }]
                         },
-                        options: {
-                            responsive: true,
-                            cutout: '75%',
-                            plugins: { legend: { display: false } }
-                        }
-                    });
-                },
 
-                pausarQuiz() {
-                    this.guardarEstadoLocal();
-                    this.sesionGuardada = true;
-                    this.volverAlMenu();
-                },
+                        showToast(msg, tipo) {
+                        this.toast = { visible: true, mensaje: msg, tipo };
+                        setTimeout(() => this.toast.visible = false, 3000);
+                        },
 
-                volverAlMenu() {
-                    if (this.vista === 'fin') this.resetStats();
-                    this.preguntas = [];
-                    this.vista = 'menu';
-                },
+                        obtenerTextoOpcion(letra) {
+                        return this.preguntaActual ? this.preguntaActual['opcion_' + letra.toLowerCase()] : '';
+                        },
 
-                resetStats() {
-                    this.stats = { correctas: 0, incorrectas: 0, racha: 0 };
-                    this.bloqueado = false;
-                    this.seleccionada = null;
-                    this.mostrarSiguiente = false;
-                },
+                        claseBoton(letra) {
+                        if (!this.bloqueado) return 'border-slate-700/50 bg-slate-800/30 hover:bg-slate-700/50
+                        hover:border-blue-500/50 cursor-pointer';
+                        if (letra === this.preguntaActual.correcta) return 'bg-emerald-500/20 border-emerald-500
+                        text-emerald-200 ring-1 ring-emerald-500/50';
+                        if (letra === this.seleccionada && letra !== this.preguntaActual.correcta) return 'bg-red-500/20
+                        border-red-500 text-red-200 shake ring-1 ring-red-500/50';
+                        return 'border-slate-800/30 opacity-30 cursor-not-allowed';
+                        },
 
-                showToast(msg, tipo) {
-                    this.toast = { visible: true, mensaje: msg, tipo };
-                    setTimeout(() => this.toast.visible = false, 3000);
-                },
-
-                obtenerTextoOpcion(letra) {
-                    return this.preguntaActual ? this.preguntaActual['opcion_' + letra.toLowerCase()] : '';
-                },
-
-                claseBoton(letra) {
-                    if (!this.bloqueado) return 'border-slate-700/50 bg-slate-800/30 hover:bg-slate-700/50 hover:border-blue-500/50 cursor-pointer';
-                    if (letra === this.preguntaActual.correcta) return 'bg-emerald-500/20 border-emerald-500 text-emerald-200 ring-1 ring-emerald-500/50';
-                    if (letra === this.seleccionada && letra !== this.preguntaActual.correcta) return 'bg-red-500/20 border-red-500 text-red-200 shake ring-1 ring-red-500/50';
-                    return 'border-slate-800/30 opacity-30 cursor-not-allowed';
-                },
-
-                estiloLetra(letra) {
-                    if (this.bloqueado) {
+                        estiloLetra(letra) {
+                        if (this.bloqueado) {
                         if (letra === this.preguntaActual.correcta) return 'bg-emerald-500 text-black';
                         if (letra === this.seleccionada) return 'bg-red-500 text-white';
                         return 'bg-slate-800 text-slate-500';
-                    }
-                    return 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white';
-                }
-            }
-        }
-    </script>
+                        }
+                        return 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white';
+                        }
+                        }
+                        }
+                        </script>
 </body>
 
 </html>
