@@ -1,10 +1,13 @@
-const CACHE_NAME = 'b787-master-v2';
+const CACHE_NAME = 'b787-master-v3';
 const URLS_TO_CACHE = [
   './',
   './index.html',
   './output.css',
-  'https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+  './manifest.json',
+  './alpine.js',
+  './supabase.js',
+  './chart.js',
+  './confetti.js',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap'
 ];
 

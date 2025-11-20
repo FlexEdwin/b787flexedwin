@@ -1,22 +1,25 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
-    <meta name="description" content="App de estudio para certificación B787. Modo offline y seguimiento de progreso.">
-    <title>B787 flexedwin </title>
+    <meta name="description" content="App de estudio Premium para certificación B787.">
+    <link rel="manifest" href="./manifest.json">
+    <title>B787 Master Pro</title>
 
-    <!-- ESTILOS LOCALES (Generados por Netlify) -->
+    <!-- ESTILOS LOCALES -->
     <link href="./output.css" rel="stylesheet">
 
-    <!-- SCRIPTS LOCALES (Descargados por Netlify) -->
+    <!-- SCRIPTS LOCALES -->
     <script defer src="./alpine.js"></script>
     <script src="./supabase.js"></script>
+    <script src="./chart.js"></script>
+    <script src="./confetti.js"></script>
 
-    <!-- Fuente -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Fuente Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -26,6 +29,40 @@
 
         [x-cloak] {
             display: none !important;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .float {
+            animation: float 6s ease-in-out infinite;
         }
 
         @keyframes shake {
@@ -68,113 +105,186 @@
     </style>
 </head>
 
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+<body
+    class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden bg-[url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat bg-blend-overlay bg-fixed">
+
+    <!-- Overlay oscuro para mejorar legibilidad sobre la imagen de fondo -->
+    <div class="absolute inset-0 bg-slate-950/80 z-0"></div>
 
     <div x-data="app()" x-init="initApp()" @keydown.window="handleTeclado($event)"
-        class="w-full max-w-md bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 overflow-hidden relative min-h-[600px] flex flex-col"
+        class="w-full max-w-md glass-card rounded-3xl overflow-hidden relative min-h-[650px] flex flex-col z-10 transition-all duration-500"
         x-cloak>
 
         <!-- TOAST -->
         <div x-show="toast.visible" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-[-20px]" x-transition:enter-end="opacity-100 translate-y-0"
-            class="absolute top-4 left-4 right-4 z-50 p-3 rounded-lg text-center text-sm font-bold shadow-lg"
-            :class="toast.tipo === 'error' ? 'bg-red-500' : 'bg-emerald-500'" role="alert" x-text="toast.mensaje">
+            class="absolute top-4 left-4 right-4 z-50 p-4 rounded-xl text-center text-sm font-bold shadow-lg backdrop-blur-md border border-white/10"
+            :class="toast.tipo === 'error' ? 'bg-red-500/90 text-white' : 'bg-emerald-500/90 text-white'" role="alert"
+            x-text="toast.mensaje">
         </div>
 
         <!-- VISTA: LOADING -->
         <div x-show="vista === 'cargando'" class="flex-1 flex flex-col items-center justify-center p-8">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-blue-500 mb-4"></div>
-            <p class="text-slate-400 animate-pulse" x-text="mensajeCarga"></p>
+            <div class="relative w-24 h-24 mb-8">
+                <div class="absolute inset-0 border-4 border-blue-500/30 rounded-full animate-ping"></div>
+                <div class="absolute inset-0 border-4 border-t-blue-500 rounded-full animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-4xl">✈️</div>
+            </div>
+            <p class="text-blue-400 font-mono animate-pulse tracking-widest" x-text="mensajeCarga"></p>
         </div>
 
         <!-- VISTA: LOGIN -->
-        <div x-show="vista === 'login'" class="flex-1 p-8 flex flex-col justify-center">
-            <div class="text-center mb-8">
-                <div class="text-6xl mb-4">✈️</div>
-                <h1
-                    class="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
-                    B787 BANK</h1>
-                <p class="text-slate-500 text-sm mt-2">Plataforma de Estudio By Flex</p>
+        <div x-show="vista === 'login'" class="flex-1 p-8 flex flex-col justify-center relative">
+            <div class="text-center mb-10 float">
+                <div
+                    class="inline-block p-4 rounded-full bg-blue-500/20 mb-4 backdrop-blur-sm border border-blue-500/30">
+                    <span class="text-5xl">✈️</span>
+                </div>
+                <h1 class="text-4xl font-black text-white tracking-tight mb-1">B787 <span
+                        class="text-blue-500">PRO</span></h1>
+                <p class="text-slate-400 text-sm font-medium">Mastery Platform</p>
             </div>
+
             <form @submit.prevent="login" class="space-y-4" novalidate>
-                <input type="email" x-model="auth.email" placeholder="Email"
-                    class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 focus:border-blue-500 outline-none transition"
-                    required>
-                <input type="password" x-model="auth.password" placeholder="Contraseña"
-                    class="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 focus:border-blue-500 outline-none transition"
-                    required>
+                <div class="group">
+                    <input type="email" x-model="auth.email" placeholder="Email Corporativo"
+                        class="w-full p-4 rounded-2xl bg-slate-800/50 border border-slate-700 focus:border-blue-500 focus:bg-slate-800/80 outline-none transition-all text-white placeholder-slate-500"
+                        required>
+                </div>
+                <div class="group">
+                    <input type="password" x-model="auth.password" placeholder="Contraseña"
+                        class="w-full p-4 rounded-2xl bg-slate-800/50 border border-slate-700 focus:border-blue-500 focus:bg-slate-800/80 outline-none transition-all text-white placeholder-slate-500"
+                        required>
+                </div>
                 <button type="submit" :disabled="cargandoAuth"
-                    class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-4 rounded-xl font-bold transition shadow-lg shadow-blue-900/20">
-                    <span x-show="!cargandoAuth">Ingresar</span>
-                    <span x-show="cargandoAuth">Validando...</span>
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 py-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-900/30 transition-all transform hover:scale-[1.02] active:scale-95">
+                    <span x-show="!cargandoAuth">Iniciar Sesión</span>
+                    <span x-show="cargandoAuth" class="flex items-center justify-center gap-2">
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        Validando...
+                    </span>
                 </button>
             </form>
 
-            <div class="mt-6 relative flex py-2 items-center">
-                <div class="flex-grow border-t border-slate-700"></div>
-                <span class="flex-shrink-0 mx-4 text-slate-500 text-xs">O entra sin registro</span>
-                <div class="flex-grow border-t border-slate-700"></div>
+            <div class="mt-8 relative flex py-2 items-center">
+                <div class="flex-grow border-t border-slate-700/50"></div>
+                <span class="flex-shrink-0 mx-4 text-slate-500 text-xs font-semibold uppercase tracking-wider">O
+                    continúa como</span>
+                <div class="flex-grow border-t border-slate-700/50"></div>
             </div>
 
             <button @click="loginAnonimo" :disabled="cargandoAuth"
-                class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 py-3 rounded-xl font-bold transition mt-2">
-                🕵️‍♂️ Modo Invitado
+                class="w-full bg-slate-800/50 hover:bg-slate-700/50 border border-slate-600/50 text-slate-300 py-3 rounded-2xl font-bold transition-all mt-4 flex items-center justify-center gap-2 hover:text-white">
+                <span>🕵️‍♂️</span> Modo Invitado
             </button>
-
-
         </div>
 
         <!-- VISTA: MENU -->
         <div x-show="vista === 'menu'" class="flex-1 p-6 flex flex-col">
+            <!-- Header Usuario -->
             <div class="flex justify-between items-center mb-8">
-                <div>
-                    <h2 class="text-lg font-bold text-white">Panel de Control</h2>
-                    <p class="text-slate-500 text-xs" x-text="auth.user?.email"></p>
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xl shadow-lg">
+                        👨‍✈️
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white leading-tight">Hola, Piloto</h2>
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="text-xs font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                                x-text="nivelUsuario"></span>
+                        </div>
+                    </div>
                 </div>
                 <button @click="logout"
-                    class="text-slate-500 hover:text-white text-xs border border-slate-700 px-3 py-1 rounded-full transition">Salir</button>
+                    class="w-10 h-10 rounded-full bg-slate-800/50 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:bg-red-500/20 hover:border-red-500/50 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
             </div>
 
             <!-- Recuperar Sesión -->
             <div x-show="sesionGuardada"
-                class="mb-6 bg-slate-800/50 p-4 rounded-xl border border-slate-700 animate-pulse">
-                <p class="text-sm text-slate-300 mb-2">⚠️ Tienes una sesión sin terminar.</p>
-                <button @click="recuperarSesion"
-                    class="w-full bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-sm font-semibold transition">Continuar
-                    Estudio</button>
+                class="mb-6 glass p-4 rounded-2xl border-l-4 border-yellow-500 animate-pulse cursor-pointer hover:bg-slate-800/60 transition"
+                @click="recuperarSesion">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-yellow-400 font-bold text-sm">Sesión Activa</p>
+                        <p class="text-xs text-slate-400">Continuar donde lo dejaste</p>
+                    </div>
+                    <div class="bg-yellow-500/20 p-2 rounded-lg text-yellow-400">➜</div>
+                </div>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-4 flex-1 overflow-y-auto custom-scrollbar">
+                <!-- Botón General -->
                 <button @click="cargarPreguntas('nuevas')"
-                    class="w-full bg-gradient-to-r from-blue-600 to-blue-700 p-5 rounded-xl text-left relative overflow-hidden group shadow-lg transition hover:scale-[1.02]">
-                    <div class="relative z-10">
-                        <div class="text-2xl mb-1">📚</div>
-                        <div class="font-bold text-lg">Estudio General</div>
-                        <div class="text-xs text-blue-100 opacity-80">Preguntas nuevas o pendientes</div>
+                    class="w-full group relative overflow-hidden rounded-2xl p-1 transition-all hover:scale-[1.02]">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 opacity-80 group-hover:opacity-100 transition-opacity">
+                    </div>
+                    <div
+                        class="relative bg-slate-900/90 p-5 rounded-xl h-full flex items-center gap-4 border border-white/5">
+                        <div class="text-3xl bg-blue-500/20 p-3 rounded-xl">📚</div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-lg text-white">Estudio General</h3>
+                            <p class="text-xs text-slate-400">Preguntas nuevas y pendientes</p>
+                        </div>
                     </div>
                 </button>
 
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
-                    <label class="text-sm font-bold text-slate-300 block mb-2">🎯 Estudio por Categoría</label>
-                    <div class="flex gap-2">
-                        <select x-model="ataSeleccionado"
-                            class="flex-1 bg-slate-900 text-slate-200 p-3 rounded-lg border border-slate-700 text-sm outline-none focus:border-blue-500">
-                            <option value="">Seleccionar ATA...</option>
-                            <template x-for="ata in atas" :key="ata.id">
-                                <option :value="ata.id" x-text="ata.nombre"></option>
-                            </template>
-                        </select>
+                <!-- Selector ATA -->
+                <div class="glass p-5 rounded-2xl border border-slate-700/50">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 block">Sistemas
+                        (ATA)</label>
+                    <div class="flex gap-3">
+                        <div class="relative flex-1">
+                            <select x-model="ataSeleccionado"
+                                class="w-full appearance-none bg-slate-800 text-white p-3 pl-4 pr-10 rounded-xl border border-slate-600 focus:border-blue-500 outline-none text-sm transition-colors">
+                                <option value="">Seleccionar Sistema...</option>
+                                <template x-for="ata in atas" :key="ata.id">
+                                    <option :value="ata.id" x-text="`${ata.id} - ${ata.nombre}`"></option>
+                                </template>
+                            </select>
+                            <div
+                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </div>
                         <button @click="cargarPreguntas(parseInt(ataSeleccionado))" :disabled="!ataSeleccionado"
-                            class="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 px-4 rounded-lg font-bold transition">Ir</button>
+                            class="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed px-5 rounded-xl font-bold transition-all shadow-lg shadow-purple-900/20 flex items-center justify-center">
+                            Ir
+                        </button>
                     </div>
                 </div>
 
+                <!-- Botón Fallos -->
                 <button @click="cargarPreguntas('fallos')"
-                    class="w-full bg-gradient-to-r from-orange-600 to-red-600 p-5 rounded-xl text-left relative overflow-hidden shadow-lg transition hover:scale-[1.02]">
-                    <div class="relative z-10">
-                        <div class="text-2xl mb-1">⚡</div>
-                        <div class="font-bold text-lg">Repasar Fallos</div>
-                        <div class="text-xs text-orange-100 opacity-80">Prioridad a errores frecuentes</div>
+                    class="w-full group relative overflow-hidden rounded-2xl p-1 transition-all hover:scale-[1.02]">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 opacity-80 group-hover:opacity-100 transition-opacity">
+                    </div>
+                    <div
+                        class="relative bg-slate-900/90 p-5 rounded-xl h-full flex items-center gap-4 border border-white/5">
+                        <div class="text-3xl bg-orange-500/20 p-3 rounded-xl">⚡</div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-lg text-white">Repasar Fallos</h3>
+                            <p class="text-xs text-slate-400">Domina tus puntos débiles</p>
+                        </div>
                     </div>
                 </button>
             </div>
@@ -182,43 +292,53 @@
 
         <!-- VISTA: QUIZ -->
         <div x-show="vista === 'quiz'" class="flex-1 flex flex-col relative">
-            <div class="bg-slate-800/80 backdrop-blur p-4 border-b border-slate-700 z-20">
-                <div class="flex justify-between items-center mb-3">
+            <!-- Top Bar -->
+            <div class="glass p-4 z-20 flex flex-col gap-3">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <button @click="pausarQuiz" class="text-slate-400 hover:text-white transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                        </button>
+                        <span class="text-sm font-bold text-slate-200" x-text="modoTexto"></span>
+                    </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold bg-slate-700 px-2 py-1 rounded text-slate-300"
-                            x-text="modoTexto"></span>
                         <div x-show="stats.racha > 1"
-                            class="flex items-center gap-1 text-orange-400 text-xs font-bold pop">
-                            <span>🔥</span><span x-text="stats.racha"></span>
+                            class="flex items-center gap-1 bg-orange-500/20 px-2 py-1 rounded-lg border border-orange-500/30 pop">
+                            <span class="text-lg">🔥</span>
+                            <span class="text-orange-400 font-black text-sm" x-text="stats.racha"></span>
                         </div>
                     </div>
-                    <button @click="pausarQuiz"
-                        class="text-slate-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-slate-800 transition">Pausar
-                        ⏸</button>
                 </div>
-                <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden" aria-hidden="true">
-                    <div class="bg-blue-500 h-full transition-all duration-500"
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                         :style="`width: ${progresoPorcentaje}%`"></div>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-6">
-                <div class="mb-6" aria-live="polite">
-                    <span class="text-xs font-mono text-blue-400 mb-2 block"
+            <!-- Question Area -->
+            <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                <div class="mb-8 animate-fade-in-up">
+                    <span
+                        class="inline-block px-2 py-1 rounded bg-slate-800 text-blue-400 text-xs font-mono mb-3 border border-slate-700"
                         x-text="`ID: ${preguntaActual?.numero}`"></span>
-                    <h3 class="text-lg md:text-xl font-semibold leading-snug text-white" x-text="preguntaActual?.texto">
-                    </h3>
+                    <h3 class="text-xl md:text-2xl font-bold leading-snug text-white drop-shadow-sm"
+                        x-text="preguntaActual?.texto"></h3>
                 </div>
 
-                <div class="space-y-3 pb-20">
+                <div class="space-y-3 pb-24">
                     <template x-for="letra in ['A', 'B', 'C', 'D']">
                         <button @click="responder(letra)" :disabled="bloqueado" role="button" tabindex="0"
-                            class="w-full p-4 rounded-xl text-left border-2 transition-all duration-200 relative group focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full p-4 rounded-2xl text-left border transition-all duration-200 relative group focus:outline-none"
                             :class="claseBoton(letra)">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center mr-3 text-xs font-bold border"
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-colors duration-200 shadow-sm"
                                     :class="estiloLetra(letra)" x-text="letra"></div>
-                                <span class="text-sm md:text-base text-slate-200"
+                                <span class="text-sm md:text-base text-slate-200 font-medium pt-1"
                                     x-text="obtenerTextoOpcion(letra)"></span>
                             </div>
                         </button>
@@ -226,43 +346,58 @@
                 </div>
             </div>
 
+            <!-- Bottom Action Bar -->
             <div x-show="mostrarSiguiente"
-                class="absolute bottom-0 left-0 right-0 p-4 bg-slate-900/90 border-t border-slate-800 backdrop-blur z-30"
-                x-transition.slide.up>
+                class="absolute bottom-0 left-0 right-0 p-4 glass border-t border-white/5 z-30" x-transition.slide.up>
                 <button @click="siguientePregunta"
-                    class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl font-bold shadow-lg transform active:scale-95 transition">
-                    Siguiente Pregunta ➜ (Enter)
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-900/40 transform active:scale-95 transition flex items-center justify-center gap-2">
+                    <span>Siguiente Pregunta</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
                 </button>
             </div>
         </div>
 
         <!-- VISTA: FIN -->
-        <div x-show="vista === 'fin'" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <div class="text-6xl mb-6 pop">🏆</div>
-            <h2 class="text-3xl font-extrabold mb-2">¡Sesión Completada!</h2>
-            <div class="text-5xl font-black mb-8" :class="porcentajeAcierto >= 80 ? 'text-blue-400' : 'text-orange-400'"
-                x-text="`${porcentajeAcierto}%`"></div>
-
-            <div class="grid grid-cols-2 gap-4 w-full mb-8">
-                <div class="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20">
-                    <p class="text-2xl font-bold text-emerald-400" x-text="stats.correctas"></p>
-                    <p class="text-xs text-emerald-200 uppercase">Aciertos</p>
-                </div>
-                <div class="bg-red-500/10 p-4 rounded-xl border border-red-500/20">
-                    <p class="text-2xl font-bold text-red-400" x-text="stats.incorrectas"></p>
-                    <p class="text-xs text-red-200 uppercase">Errores</p>
+        <div x-show="vista === 'fin'"
+            class="flex-1 flex flex-col items-center justify-center p-6 text-center overflow-y-auto">
+            <div class="w-full max-w-xs mx-auto mb-6 relative">
+                <canvas id="chartResultados"></canvas>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span class="text-4xl font-black text-white" x-text="`${porcentajeAcierto}%`"></span>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest">Precisión</span>
                 </div>
             </div>
+
+            <h2 class="text-2xl font-bold text-white mb-2">¡Sesión Finalizada!</h2>
+            <p class="text-slate-400 text-sm mb-8">Has completado tu racha de estudio.</p>
+
+            <div class="grid grid-cols-2 gap-4 w-full mb-8">
+                <div class="bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/20 flex flex-col items-center">
+                    <span class="text-3xl mb-1">✅</span>
+                    <p class="text-2xl font-bold text-emerald-400" x-text="stats.correctas"></p>
+                    <p class="text-xs text-emerald-200/70 uppercase font-bold">Correctas</p>
+                </div>
+                <div class="bg-red-500/10 p-4 rounded-2xl border border-red-500/20 flex flex-col items-center">
+                    <span class="text-3xl mb-1">❌</span>
+                    <p class="text-2xl font-bold text-red-400" x-text="stats.incorrectas"></p>
+                    <p class="text-xs text-red-200/70 uppercase font-bold">Incorrectas</p>
+                </div>
+            </div>
+
             <button @click="volverAlMenu"
-                class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 py-4 rounded-xl font-bold transition">Volver
-                al Menú</button>
+                class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white py-4 rounded-2xl font-bold transition shadow-lg">
+                Volver al Menú
+            </button>
         </div>
 
     </div>
 
     <script>
-        // ⚠️ REEMPLAZA ESTO CON TUS CLAVES DE SUPABASE ⚠️
-        // Recuerda activar RLS en Supabase para seguridad real.
+        // Configuración Supabase
         const SUPABASE_URL = 'https://kvqstfjvvnmwgutckdev.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2cXN0Zmp2dm5td2d1dGNrZGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NjY2MjIsImV4cCI6MjA3OTE0MjYyMn0.i2Q2XpaV3MUhLDwrnXqaJI1a-G2cM74fr0W4HRo6RI0';
 
@@ -272,7 +407,7 @@
         function app() {
             return {
                 vista: 'cargando',
-                mensajeCarga: 'Iniciando...',
+                mensajeCarga: 'Iniciando sistemas...',
                 auth: { email: '', password: '', user: null },
                 cargandoAuth: false,
                 atas: [],
@@ -287,10 +422,11 @@
                 mostrarSiguiente: false,
                 sesionGuardada: false,
                 stats: { correctas: 0, incorrectas: 0, racha: 0 },
+                chartInstance: null,
 
                 get preguntaActual() { return this.preguntas[this.indiceActual]; },
                 get modoTexto() {
-                    const map = { 'nuevas': 'General', 'ata': 'Categoría', 'fallos': 'Repaso' };
+                    const map = { 'nuevas': 'Estudio General', 'ata': 'Por Categoría', 'fallos': 'Repaso de Fallos' };
                     return map[this.modo] || 'Estudio';
                 },
                 get progresoPorcentaje() {
@@ -300,10 +436,17 @@
                     const total = this.stats.correctas + this.stats.incorrectas;
                     return total === 0 ? 0 : Math.round((this.stats.correctas / total) * 100);
                 },
+                get nivelUsuario() {
+                    // Lógica simple de niveles basada en aciertos totales (simulada con racha actual para demo)
+                    // En una app real, esto vendría de la DB
+                    const score = this.stats.correctas;
+                    if (score < 10) return 'Cadete';
+                    if (score < 50) return 'Primer Oficial';
+                    return 'Capitán';
+                },
 
                 async initApp() {
                     this.checkLocalStorage();
-                    // PWA: Registro Service Worker
                     if ('serviceWorker' in navigator) {
                         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
                     }
@@ -318,7 +461,7 @@
                             this.vista = 'login';
                         }
                     } catch (e) {
-                        this.showToast("Error de red. Verifica tu conexión.", 'error');
+                        this.showToast("Modo Offline / Error de Red", 'error');
                         this.vista = 'login';
                     }
                 },
@@ -333,14 +476,9 @@
                 },
 
                 async login() {
-                    // Validación Regex simple (ahorra requests)
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(this.auth.email)) {
-                        return this.showToast("Email inválido", 'error');
-                    }
-                    if (this.auth.password.length < 6) {
-                        return this.showToast("Contraseña muy corta", 'error');
-                    }
+                    if (!emailRegex.test(this.auth.email)) return this.showToast("Email inválido", 'error');
+                    if (this.auth.password.length < 6) return this.showToast("Contraseña muy corta", 'error');
 
                     this.cargandoAuth = true;
                     const { data, error } = await sb.auth.signInWithPassword({
@@ -350,7 +488,7 @@
                     this.cargandoAuth = false;
 
                     if (error) {
-                        this.showToast(error.message === "Invalid login credentials" ? "Datos incorrectos" : error.message, 'error');
+                        this.showToast("Credenciales incorrectas", 'error');
                     } else {
                         this.auth.user = data.user;
                         await this.cargarAtas();
@@ -360,19 +498,16 @@
 
                 async loginAnonimo() {
                     this.cargandoAuth = true;
-                    // Esta función crea un usuario temporal en Supabase
                     const { data, error } = await sb.auth.signInAnonymously();
-
                     this.cargandoAuth = false;
 
                     if (error) {
                         this.showToast("Error al entrar como invitado", 'error');
-                        console.error(error);
                     } else {
                         this.auth.user = data.user;
                         await this.cargarAtas();
                         this.vista = 'menu';
-                        this.showToast("Entrando en modo temporal...", 'info');
+                        this.showToast("Modo Invitado Activado", 'info');
                     }
                 },
 
@@ -398,9 +533,8 @@
 
                 async cargarPreguntas(entrada) {
                     this.vista = 'cargando';
-                    this.mensajeCarga = 'Conectando con base de datos...';
+                    this.mensajeCarga = 'Descargando datos de vuelo...';
 
-                    // Determinamos el modo basándonos en la entrada
                     this.modo = (entrada === 'nuevas' || entrada === 'fallos') ? entrada : 'ata';
                     this.resetStats();
 
@@ -408,15 +542,12 @@
                         let rpc = this.modo === 'fallos' ? 'repasar_falladas' : 'estudiar_preguntas';
                         let params = {};
 
-                        // Lógica de saneamiento de tipos para el RPC
                         if (this.modo === 'nuevas') {
                             params = { filtro_ata_id: null };
                         } else if (this.modo === 'ata') {
-                            // CORRECCIÓN CRÍTICA: Asegurar que sea entero
                             const ataIdNumerico = parseInt(entrada);
                             params = { filtro_ata_id: ataIdNumerico };
                         }
-                        // Si es 'fallos', params se mantiene vacío {}
 
                         const { data, error } = await sb.rpc(rpc, params);
 
@@ -450,13 +581,16 @@
                     if (esCorrecta) {
                         this.stats.correctas++;
                         this.stats.racha++;
+                        // Confetti cada 5 aciertos seguidos
+                        if (this.stats.racha > 0 && this.stats.racha % 5 === 0) {
+                            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                        }
                     } else {
                         this.stats.incorrectas++;
                         this.stats.racha = 0;
-                        if (navigator.vibrate) navigator.vibrate(200); // Feedback táctil
+                        if (navigator.vibrate) navigator.vibrate(200);
                     }
 
-                    // Optimistic UI
                     sb.rpc('registrar_respuesta', {
                         p_pregunta_id: this.preguntaActual.id,
                         es_correcta: esCorrecta
@@ -465,7 +599,7 @@
                     this.guardarEstadoLocal();
 
                     if (esCorrecta) {
-                        setTimeout(() => this.siguientePregunta(), 1200);
+                        setTimeout(() => this.siguientePregunta(), 1000);
                     } else {
                         this.mostrarSiguiente = true;
                     }
@@ -505,6 +639,43 @@
                     this.vista = 'fin';
                     localStorage.removeItem('b787_sesion');
                     this.sesionGuardada = false;
+
+                    // Disparar Confetti Final si aprobó (>80%)
+                    if (this.porcentajeAcierto >= 80) {
+                        const duration = 3000;
+                        const end = Date.now() + duration;
+                        (function frame() {
+                            confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
+                            confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } });
+                            if (Date.now() < end) requestAnimationFrame(frame);
+                        }());
+                    }
+
+                    // Renderizar Gráfico
+                    this.$nextTick(() => this.renderChart());
+                },
+
+                renderChart() {
+                    const ctx = document.getElementById('chartResultados');
+                    if (this.chartInstance) this.chartInstance.destroy();
+
+                    this.chartInstance = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Correctas', 'Incorrectas'],
+                            datasets: [{
+                                data: [this.stats.correctas, this.stats.incorrectas],
+                                backgroundColor: ['#10b981', '#ef4444'],
+                                borderWidth: 0,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            cutout: '75%',
+                            plugins: { legend: { display: false } }
+                        }
+                    });
                 },
 
                 pausarQuiz() {
@@ -536,18 +707,19 @@
                 },
 
                 claseBoton(letra) {
-                    if (!this.bloqueado) return 'border-slate-700 hover:border-blue-500 hover:bg-slate-800 cursor-pointer';
-                    if (letra === this.preguntaActual.correcta) return 'bg-emerald-900/40 border-emerald-500 text-emerald-200 ring-1 ring-emerald-500';
-                    if (letra === this.seleccionada && letra !== this.preguntaActual.correcta) return 'bg-red-900/40 border-red-500 text-red-200 shake ring-1 ring-red-500';
-                    return 'border-slate-800 opacity-40 cursor-not-allowed';
+                    if (!this.bloqueado) return 'border-slate-700/50 bg-slate-800/30 hover:bg-slate-700/50 hover:border-blue-500/50 cursor-pointer';
+                    if (letra === this.preguntaActual.correcta) return 'bg-emerald-500/20 border-emerald-500 text-emerald-200 ring-1 ring-emerald-500/50';
+                    if (letra === this.seleccionada && letra !== this.preguntaActual.correcta) return 'bg-red-500/20 border-red-500 text-red-200 shake ring-1 ring-red-500/50';
+                    return 'border-slate-800/30 opacity-30 cursor-not-allowed';
                 },
 
                 estiloLetra(letra) {
                     if (this.bloqueado) {
-                        if (letra === this.preguntaActual.correcta) return 'bg-emerald-500 text-black border-emerald-500';
-                        if (letra === this.seleccionada) return 'bg-red-500 text-white border-red-500';
+                        if (letra === this.preguntaActual.correcta) return 'bg-emerald-500 text-black';
+                        if (letra === this.seleccionada) return 'bg-red-500 text-white';
+                        return 'bg-slate-800 text-slate-500';
                     }
-                    return 'bg-slate-800 border-slate-600 text-slate-400 group-hover:bg-blue-600 group-hover:border-blue-600 group-hover:text-white';
+                    return 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white';
                 }
             }
         }

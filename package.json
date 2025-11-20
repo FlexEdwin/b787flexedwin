@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run build:css && npm run download:js",
     "build:css": "tailwindcss -i ./src/input.css -o ./output.css --minify",
-    "download:js": "curl -L -o alpine.js https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js && curl -L -o supabase.js https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    "download:js": "curl -L -o alpine.js https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js && curl -L -o supabase.js https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2 && curl -L -o chart.js https://cdn.jsdelivr.net/npm/chart.js && curl -L -o confetti.js https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"
   },
   "keywords": [],
   "author": "",
