@@ -131,12 +131,21 @@
             class="mb-8 text-center md:text-left md:flex md:justify-between md:items-end border-b border-gray-200 pb-6">
             <div>
                 <h1 class="text-3xl md:text-4xl font-black tracking-tight text-gray-900 mb-1">
-                    B787 <span class="text-blue-600">FlexEdwin</span>
+                    Proyecto B787 <span class="text-blue-600">Escalafón</span>
                 </h1>
-                <p class="text-gray-500 text-sm font-medium tracking-wide uppercase">Plataforma de Escalafón Técnico</p>
+                <p class="text-gray-500 text-sm font-medium tracking-wide uppercase" 
+                   x-text="bancos.find(b => b.id === bancoSeleccionado)?.nombre || 'Plataforma de Escalafón Técnico'"></p>
             </div>
 
             <div x-show="auth.user" class="mt-4 md:mt-0 flex items-center gap-4 justify-center md:justify-end">
+                <!-- Botón Cambiar Banco (solo visible en menu) -->
+                <button x-show="vista === 'menu'" @click="cambiarBanco()" 
+                        class="text-gray-500 hover:text-blue-600 text-sm font-medium transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                    Cambiar Banco
+                </button>
                 <div class="text-right hidden md:block">
                     <p class="text-xs text-gray-500 uppercase font-bold">Nivel Técnico</p>
                     <p class="text-blue-600 font-bold" x-text="nivelUsuario"></p>
@@ -203,6 +212,37 @@
                         class="text-gray-500 hover:text-gray-900 text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto">
                         Guest Access
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA: SELECCIÓN DE BANCO -->
+        <div x-show="vista === 'seleccion_banco'" class="flex-1 flex flex-col items-center justify-center">
+            <div class="w-full max-w-4xl">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-black text-gray-900 mb-2">Selecciona tu Banco de Estudio</h2>
+                    <p class="text-gray-600 text-sm">Elige el área técnica que deseas practicar</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <template x-for="banco in bancos" :key="banco.id">
+                        <button @click="seleccionarBanco(banco.id)"
+                            class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300 text-left p-8 flex flex-col items-center">
+                            
+                            <div class="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300" 
+                                 x-text="banco.icono"></div>
+                            
+                            <h3 class="text-xl font-bold text-gray-900 mb-2 text-center" 
+                                x-text="banco.nombre"></h3>
+                            
+                            <p class="text-gray-600 text-sm text-center leading-relaxed" 
+                               x-text="banco.descripcion"></p>
+                            
+                            <div class="mt-6 flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
+                                Seleccionar <span class="ml-2">→</span>
+                            </div>
+                        </button>
+                    </template>
                 </div>
             </div>
         </div>
