@@ -47,20 +47,31 @@ function app() {
             return total === 0 ? 0 : Math.round((this.stats.correctas / total) * 100);
         },
         get nivelUsuario() {
-        const score = this.stats.correctas;
-        if (score < 10) return 'Trainee';
-        if (score < 50) return 'Certified Tech';
-        return 'Senior Inspector';
+            const score = this.stats.correctas;
+            if (score < 10) return 'Trainee';
+            if (score < 50) return 'Certified Tech';
+            return 'Senior Inspector';
         },
 
         // --- CICLO DE VIDA ---
         async initApp() {
             this.checkLocalStorage();
 
-            // Registro PWA (Si existe el archivo sw.js en la raíz)
+            // ⚠️ DEVELOPMENT MODE: Service Worker DISABLED to prevent caching
+            // This ensures you see live code updates immediately during development
+            // TO RE-ENABLE FOR PRODUCTION: Uncomment the lines below
+            
+            // Unregister any existing Service Workers
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    registrations.forEach(registration => registration.unregister());
+                });
             }
+
+            // Registro PWA (Si existe el archivo sw.js en la raíz)
+            // if ('serviceWorker' in navigator) {
+            //     navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
+            // }
 
             try {
                 const { data } = await sb.auth.getSession();
