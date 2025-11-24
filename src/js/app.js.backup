@@ -11,23 +11,6 @@ function app() {
     return {
         // --- ESTADO GLOBAL ---
         vista: 'cargando',
-        mensajeCarga: 'Iniciando sistemas...',
-        auth: { email: '', password: '', user: null },
-        cargandoAuth: false,
-        atas: [],
-        ataSeleccionado: '',
-
-        // --- BANCOS DE PREGUNTAS ---
-        bancoSeleccionado: null,
-        bancos: [
-            { id: 'b787', nombre: 'Técnico B787', icono: '✈️', descripcion: 'Sistemas y mantenimiento Boeing 787' },
-            { id: 'ingles', nombre: 'Inglés Técnico', icono: '🇬🇧', descripcion: 'Terminología aeronáutica en inglés' },
-            { id: 'amos', nombre: 'Sistema AMOS', icono: '💻', descripcion: 'Gestión de mantenimiento AMOS' }
-        ],
-
-        // --- ESTADO DEL QUIZ ---
-        modo: '',
-        preguntas: [],
         indiceActual: 0,
         bloqueado: false,
         seleccionada: null,
