@@ -373,25 +373,39 @@ function app() {
         },
 
         // --- CLASES CSS DINÁMICAS ---
+        // --- CLASES CSS DINÁMICAS ---
         claseBoton(letra) {
-            if (!this.bloqueado) return 'bg-slate-800 border-slate-700 shadow-sm hover:bg-slate-700 hover:border-blue-500 cursor-pointer';
+            // Estado Normal: Fondo blanco, borde gris
+            if (!this.bloqueado) return 'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer';
 
-            if (letra === this.preguntaActual.correcta)
-                return 'bg-emerald-900/50 border-emerald-500 text-emerald-400 ring-1 ring-emerald-500';
+            const correcta = this.preguntaActual.correcta?.toUpperCase();
+            const seleccionada = this.seleccionada?.toUpperCase();
+            const actual = letra.toUpperCase();
 
-            if (letra === this.seleccionada && letra !== this.preguntaActual.correcta)
-                return 'bg-red-900/50 border-red-500 text-red-400 shake ring-1 ring-red-500';
+            // Respuesta Correcta: Verde claro
+            if (actual === correcta)
+                return 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500';
 
-            return 'border-slate-800 opacity-40 cursor-not-allowed';
+            // Selección Incorrecta: Rojo claro
+            if (actual === seleccionada && actual !== correcta)
+                return 'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500';
+
+            // Resto: Desvanecido
+            return 'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed';
         },
 
         estiloLetra(letra) {
+            const correcta = this.preguntaActual.correcta?.toUpperCase();
+            const seleccionada = this.seleccionada?.toUpperCase();
+            const actual = letra.toUpperCase();
+
             if (this.bloqueado) {
-                if (letra === this.preguntaActual.correcta) return 'bg-emerald-500 text-white';
-                if (letra === this.seleccionada) return 'bg-red-500 text-white';
-                return 'bg-slate-700 text-slate-500';
+                if (actual === correcta) return 'bg-emerald-600 text-white';
+                if (actual === seleccionada) return 'bg-red-600 text-white';
+                return 'bg-gray-200 text-gray-400';
             }
-            return 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white';
+            // Estado Normal
+            return 'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white';
         }
     }
 }
