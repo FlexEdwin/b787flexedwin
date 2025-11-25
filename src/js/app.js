@@ -30,7 +30,8 @@ function app() {
         preguntas: [],
         indiceActual: 0,
         bloqueado: false,
-        seleccionada: null,
+        seleccionada: null, // Letra VISUAL seleccionada (A, B, C, D)
+        ordenOpciones: ['A', 'B', 'C', 'D'], // Mapeo: Posición Visual -> Letra Real en DB
         mostrarSiguiente: false,
         sesionGuardada: false,
         stats: { correctas: 0, incorrectas: 0, racha: 0 },
@@ -208,6 +209,8 @@ function app() {
                     this.indiceActual = saved.indiceActual;
                     this.stats = saved.stats;
                     this.modo = saved.modo;
+                    // Recuperar el orden de opciones guardado o generar uno nuevo si no existe (retrocompatibilidad)
+                    this.ordenOpciones = saved.ordenOpciones || this.mezclarOpciones(true); 
                     this.vista = 'quiz';
                 }
             } catch (e) { localStorage.removeItem('b787_sesion'); }
@@ -246,6 +249,7 @@ function app() {
 
                 this.preguntas = data;
                 this.indiceActual = 0;
+                this.mezclarOpciones(); // Mezclar para la primera pregunta
                 this.guardarEstadoLocal();
                 this.vista = 'quiz';
 
@@ -256,12 +260,18 @@ function app() {
             }
         },
 
-        async responder(letra) {
+        async responder(letraVisual) {
             if (this.bloqueado) return;
             this.bloqueado = true;
-            this.seleccionada = letra;
+            this.seleccionada = letraVisual;
 
-            const esCorrecta = letra === this.preguntaActual.correcta;
+            // TRADUCCIÓN: Letra Visual (Botón Clickeado) -> Letra Real (DB)
+            // Ejemplo: Si ordenOpciones es ['C', 'A', 'D', 'B']
+            // Click en botón 0 ('A') -> Real 'C'
+            const indiceVisual = ['A', 'B', 'C', 'D'].indexOf(letraVisual);
+            const letraReal = this.ordenOpciones[indiceVisual];
+
+            const esCorrecta = letraReal === this.preguntaActual.correcta;
 
             // --- ACTUALIZACIÓN VISUAL ---
             if (esCorrecta) {
@@ -276,7 +286,9 @@ function app() {
             console.log("📡 Intentando guardar en DB:", {
                 pregunta_id: this.preguntaActual.id,
                 es_correcta: esCorrecta,
-                usuario: this.auth.user?.id
+                usuario: this.auth.user?.id,
+                visual: letraVisual,
+                real: letraReal
             });
 
             const { data, error } = await sb.rpc('registrar_respuesta', {
@@ -307,6 +319,7 @@ function app() {
                 this.bloqueado = false;
                 this.seleccionada = null;
                 this.mostrarSiguiente = false;
+                this.mezclarOpciones(); // Mezclar para la siguiente
                 this.guardarEstadoLocal();
             } else {
                 this.finalizarSesion();
@@ -323,12 +336,25 @@ function app() {
         },
 
         // --- UTILIDADES Y AUXILIARES ---
+        mezclarOpciones(retornar = false) {
+            // Algoritmo Fisher-Yates para mezclar ['A', 'B', 'C', 'D']
+            const opciones = ['A', 'B', 'C', 'D'];
+            for (let i = opciones.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opciones[i], opciones[j]] = [opciones[j], opciones[i]];
+            }
+            
+            if (retornar) return opciones;
+            this.ordenOpciones = opciones;
+        },
+
         guardarEstadoLocal() {
             localStorage.setItem('b787_sesion', JSON.stringify({
                 preguntas: this.preguntas,
                 indiceActual: this.indiceActual,
                 stats: this.stats,
-                modo: this.modo
+                modo: this.modo,
+                ordenOpciones: this.ordenOpciones // Guardamos el orden actual
             }));
         },
 
@@ -400,40 +426,55 @@ function app() {
             setTimeout(() => this.toast.visible = false, 3000);
         },
 
-        obtenerTextoOpcion(letra) {
-            return this.preguntaActual ? this.preguntaActual['opcion_' + letra.toLowerCase()] : '';
+        obtenerTextoOpcion(letraVisual) {
+            if (!this.preguntaActual) return '';
+            // Traducir Visual -> Real
+            const indiceVisual = ['A', 'B', 'C', 'D'].indexOf(letraVisual);
+            const letraReal = this.ordenOpciones[indiceVisual];
+            return this.preguntaActual['opcion_' + letraReal.toLowerCase()];
         },
 
         // --- CLASES CSS DINÁMICAS ---
-        // --- CLASES CSS DINÁMICAS ---
-        claseBoton(letra) {
+        claseBoton(letraVisual) {
             // Estado Normal: Fondo blanco, borde gris
             if (!this.bloqueado) return 'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer';
 
-            const correcta = this.preguntaActual.correcta?.toUpperCase();
-            const seleccionada = this.seleccionada?.toUpperCase();
-            const actual = letra.toUpperCase();
+            // Traducir Visual -> Real para comparar con la respuesta correcta
+            const indiceVisual = ['A', 'B', 'C', 'D'].indexOf(letraVisual);
+            const letraReal = this.ordenOpciones[indiceVisual];
 
-            // Respuesta Correcta: Verde claro
-            if (actual === correcta)
+            const correcta = this.preguntaActual.correcta?.toUpperCase();
+            const seleccionadaVisual = this.seleccionada; // La letra visual que clickeó el usuario
+            
+            // Para saber si ESTE botón visual corresponde a la respuesta correcta:
+            // ¿La letra real detrás de este botón es la correcta?
+            const esEsteBotonCorrecto = (letraReal === correcta);
+
+            // Para saber si ESTE botón visual fue el seleccionado incorrectamente:
+            // ¿Fue este el botón visual clickeado? Y ¿No era el correcto?
+            const esEsteBotonSeleccionado = (letraVisual === seleccionadaVisual);
+
+            // Respuesta Correcta (Siempre se ilumina en verde, haya sido clickeada o no)
+            if (esEsteBotonCorrecto)
                 return 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500';
 
-            // Selección Incorrecta: Rojo claro
-            if (actual === seleccionada && actual !== correcta)
+            // Selección Incorrecta (Se ilumina en rojo si el usuario clickeó este)
+            if (esEsteBotonSeleccionado && !esEsteBotonCorrecto)
                 return 'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500';
 
             // Resto: Desvanecido
             return 'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed';
         },
 
-        estiloLetra(letra) {
+        estiloLetra(letraVisual) {
+            // Traducir Visual -> Real
+            const indiceVisual = ['A', 'B', 'C', 'D'].indexOf(letraVisual);
+            const letraReal = this.ordenOpciones[indiceVisual];
             const correcta = this.preguntaActual.correcta?.toUpperCase();
-            const seleccionada = this.seleccionada?.toUpperCase();
-            const actual = letra.toUpperCase();
 
             if (this.bloqueado) {
-                if (actual === correcta) return 'bg-emerald-600 text-white';
-                if (actual === seleccionada) return 'bg-red-600 text-white';
+                if (letraReal === correcta) return 'bg-emerald-600 text-white';
+                if (letraVisual === this.seleccionada) return 'bg-red-600 text-white';
                 return 'bg-gray-200 text-gray-400';
             }
             // Estado Normal
