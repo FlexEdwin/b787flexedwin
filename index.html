@@ -409,17 +409,49 @@
                         x-text="preguntaActual?.texto"></h2>
 
                     <div class="grid gap-4">
-                        <template x-for="letra in ['A', 'B', 'C', 'D']">
-                            <button @click="responder(letra)" :disabled="bloqueado"
-                                class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
-                                :class="claseBoton(letra)">
-                                <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
-                                    :class="estiloLetra(letra)" x-text="letra"></div>
-                                <span
-                                    class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
-                                    x-text="obtenerTextoOpcion(letra)"></span>
-                            </button>
-                        </template>
+                        <!-- Opción A -->
+                        <button @click="responder('A')" :disabled="bloqueado" x-show="obtenerTextoOpcion('A')"
+                            class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
+                            :class="claseBoton('A')">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
+                                :class="estiloLetra('A')">A</div>
+                            <span
+                                class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
+                                x-text="obtenerTextoOpcion('A')"></span>
+                        </button>
+
+                        <!-- Opción B -->
+                        <button @click="responder('B')" :disabled="bloqueado" x-show="obtenerTextoOpcion('B')"
+                            class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
+                            :class="claseBoton('B')">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
+                                :class="estiloLetra('B')">B</div>
+                            <span
+                                class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
+                                x-text="obtenerTextoOpcion('B')"></span>
+                        </button>
+
+                        <!-- Opción C -->
+                        <button @click="responder('C')" :disabled="bloqueado" x-show="obtenerTextoOpcion('C')"
+                            class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
+                            :class="claseBoton('C')">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
+                                :class="estiloLetra('C')">C</div>
+                            <span
+                                class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
+                                x-text="obtenerTextoOpcion('C')"></span>
+                        </button>
+
+                        <!-- Opción D -->
+                        <button @click="responder('D')" :disabled="bloqueado" x-show="obtenerTextoOpcion('D')"
+                            class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
+                            :class="claseBoton('D')">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
+                                :class="estiloLetra('D')">D</div>
+                            <span
+                                class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
+                                x-text="obtenerTextoOpcion('D')"></span>
+                        </button>
                     </div>
                 </div>
             </div>
