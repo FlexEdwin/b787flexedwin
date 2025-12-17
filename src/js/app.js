@@ -144,6 +144,7 @@ function app() {
             } else {
                 this.auth.user = data.user;
                 await this.cargarAtas();
+                await this.cargarBancos(); // 🐛 FIX: Load banks immediately after login
                 this.vista = 'seleccion_banco';
             }
         },
@@ -158,6 +159,7 @@ function app() {
             } else {
                 this.auth.user = data.user;
                 await this.cargarAtas();
+                await this.cargarBancos(); // 🐛 FIX: Load banks immediately after login
                 this.vista = 'seleccion_banco';
                 this.showToast("Modo Invitado Activado", 'info');
             }
@@ -204,11 +206,21 @@ function app() {
         },
 
         // --- SELECCIÓN DE BANCO ---
-        seleccionarBanco(id) {
+        async seleccionarBanco(id) {
+            console.log('👆 Click en Banco ID:', id);
+            
+            // 1. Actualizar Estado
             this.bancoSeleccionado = id;
-            this.ataSeleccionado = ''; // 🆕 Reset ATA when changing banks
-            this.vista = 'menu';
+            this.ataSeleccionado = ''; // Reset ATA al cambiar banco
+            this.preguntas = []; // Limpiar preguntas viejas visualmente
             localStorage.setItem('b787_banco_actual', id);
+            
+            // 2. Cargar Dependencias
+            console.log('📊 Cargando ATAs para banco:', id);
+            await this.cargarAtas();
+            
+            // 3. Navegar al Menú
+            this.vista = 'menu';
         },
 
         cambiarBanco() {
@@ -233,11 +245,20 @@ function app() {
         },
 
         async cargarPreguntas(entrada) {
+            console.log('--- 🎯 INTENTO DE CARGA DE PREGUNTAS ---');
+            console.log('Estado actual:', { 
+                bancoSeleccionado: this.bancoSeleccionado,
+                modoEstudio: this.modoEstudio,
+                entrada: entrada,
+                modo: this.modo
+            });
+
             this.vista = 'cargando';
             this.mensajeCarga = 'Preparando taller...';
 
             // 🛡️ VALIDATION: Ensure a bank is selected
             if (!this.bancoSeleccionado) {
+                console.error('❌ No hay banco seleccionado');
                 this.showToast('Por favor, selecciona un banco primero', 'error');
                 this.vista = 'seleccion_banco';
                 return;
@@ -272,10 +293,21 @@ function app() {
                     }
                 }
 
-                console.log('📡 Cargando preguntas:', { rpc: rpcName, params, modoEstudio: this.modoEstudio });
+                console.log('📡 Enviando a RPC:', rpcName);
+                console.log('📦 Parámetros:', JSON.stringify(params, null, 2));
+                
                 const { data, error } = await sb.rpc(rpcName, params);
 
-                if (error) throw error;
+                console.log('📥 Recibido del RPC:', { 
+                    data: data, 
+                    cantidad: data?.length || 0,
+                    error: error 
+                });
+
+                if (error) {
+                    console.error('❌ Error del backend:', error);
+                    throw error;
+                }
 
                 // 🚫 MANEJO DE VACÍO: Diferentes estrategias según el modo
                 if (!data || data.length === 0) {

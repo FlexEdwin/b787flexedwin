@@ -95,3 +95,49 @@
 - Sistema ahora implementa lógica de "Doble Validación" completa
 - Usuario puede alternar entre estudio general y repaso de fallos visualmente
 - Backend recibe contexto de modo para aplicar reglas de progresión correctas
+
+---
+
+### [2025-12-17] - Bank Loading & Selection Bug Fixes 🐛
+
+**BUGS CORREGIDOS:**
+
+- ✅ **BUG 1 - Lista de Bancos Vacía en Login Invitado**:
+
+  - Agregado `await this.cargarBancos()` en `login()` y `loginAnonimo()`
+  - Bancos ahora se cargan inmediatamente después de autenticación
+  - Fix también aplicado al login con credenciales para consistencia
+
+- ✅ **BUG 2 - "Próximamente" en B787 con Datos Disponibles**:
+
+  - Agregados logs de depuración exhaustivos en `cargarPreguntas()`
+  - Logs muestran: estado actual, parámetros enviados al RPC, respuesta recibida
+  - Permite diagnóstico preciso de problemas de comunicación backend
+
+- ✅ **REWIRING - Click en Tarjetas de Banco**:
+  - Convertida `seleccionarBanco()` a función `async`
+  - Ahora carga ATAs automáticamente al seleccionar banco
+  - Limpia estado de preguntas viejas antes de cambiar de contexto
+  - Logging agregado para rastrear el flujo de selección
+
+**LOGS DE DEPURACIÓN AGREGADOS:**
+
+```javascript
+// En cargarPreguntas()
+console.log("--- 🎯 INTENTO DE CARGA DE PREGUNTAS ---");
+console.log("Estado actual:", {
+  bancoSeleccionado,
+  modoEstudio,
+  entrada,
+  modo,
+});
+console.log("📡 Enviando a RPC:", rpcName);
+console.log("📦 Parámetros:", JSON.stringify(params, null, 2));
+console.log("📥 Recibido del RPC:", { data, cantidad, error });
+```
+
+**RESULTADO:**
+
+- Login como invitado ahora muestra bancos inmediatamente
+- Flujo de selección de banco completamente funcional
+- Diagnóstico de problemas backend ahora es trivial mediante consola
