@@ -245,3 +245,21 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 - Tiempos de carga entre preguntas eliminados
 - Menor carga en Supabase (1 llamada vs 50 llamadas por sesión)
 - UX más fluida y predecible para el usuario
+
+### [2025-12-17] - HOTFIX: UI Regression (Header Disappearance) 🚨
+
+**PROBLEMA IDENTIFICADO:**
+
+- El Header desaparecía al navegar debido a una dependencia de la variable obsoleta `vista`.
+- Vistas de carga y login también fallaban silenciosamente.
+
+**SOLUCIÓN APLICADA:**
+
+- **Index.html:** Se reemplazaron todas las referencias residuales de `vista` por `vistaActual`.
+- **Header Global:** Se eliminó la directiva `x-show` del Header para cumplir con el requisito de "Siempre Visible".
+- **Dashboard:** Se corrigieron los botones de navegación para usar el estado correcto.
+
+**ESTADO ACTUAL:**
+
+- Sistema estable con navegación de 3 niveles funcionando.
+- Header visible en todas las pantallas.
