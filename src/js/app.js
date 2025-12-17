@@ -82,26 +82,20 @@ function app() {
 
         // --- CICLO DE VIDA ---
         async initApp() {
+            console.log("� Iniciando App...");
             this.checkLocalStorage();
 
-            // ============================================================
-            // 🚧 MODO DESARROLLO (LIMPIEZA DE CACHÉ)
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    for(let registration of registrations) {
-                        registration.unregister();
-                        console.log('🧹 Service Worker eliminado: Modo Desarrollo Activo');
-                    }
-                });
-            }
-            // ============================================================
-
-            try {
-                const { data } = await sb.auth.getSession();
-                if (data.session) {
-                    this.auth.user = data.session.user;
+            // 1. Verificar Sesión
+            const { data: { session } } = await sb.auth.getSession();
+            
+            if (session) {
+                console.log("✅ Usuario detectado. Cargando datos...");
+                this.auth.user = session.user;
+                this.cargando = true; // Show spinner while loading initial data
+                try {
                     await this.cargarAtas();
-                    await this.cargarBancos(); // 🆕 Load banks from database
+                    await this.cargarBancos();
+                    
                     // Restaurar banco si existe
                     const bancoGuardado = localStorage.getItem('b787_banco_actual');
                     if (bancoGuardado) {
@@ -110,13 +104,29 @@ function app() {
                     } else {
                         this.vistaActual = 'inicio';
                     }
-                } else {
-                    this.vistaActual = 'login';
+                } catch (e) {
+                    console.error("Error cargando datos iniciales:", e);
+                } finally {
+                    this.cargando = false;
                 }
-            } catch (e) {
-                this.showToast("Modo Offline / Error de Red", 'error');
+            } else {
+                console.log("👻 Usuario anónimo o no logueado");
                 this.vistaActual = 'login';
             }
+            
+            // Escuchar cambios de auth (Logout/Login)
+            sb.auth.onAuthStateChange(async (event, session) => {
+                console.log("🔄 Auth Change:", event);
+                if (event === 'SIGNED_IN' && session) {
+                    this.auth.user = session.user;
+                    this.vistaActual = 'inicio';
+                    await this.cargarBancos();
+                    await this.cargarAtas();
+                } else if (event === 'SIGNED_OUT') {
+                    this.auth.user = null;
+                    this.vistaActual = 'login';
+                }
+            });
         },
 
         // --- GESTIÓN DE DATOS ---
@@ -145,6 +155,7 @@ async cargarAtas() {
 },
 
         async cargarBancos() {
+            this.cargando = true;
             try {
                 const { data, error } = await sb.from('bancos').select('id, nombre, descripcion, slug').order('nombre');
                 if (error) throw error;
@@ -156,6 +167,8 @@ async cargarAtas() {
                 console.error('❌ Error cargando bancos:', e);
                 this.showToast('Error cargando bancos de preguntas', 'error');
                 this.listaBancos = []; // Fallback to empty array
+            } finally {
+                this.cargando = false;
             }
         },
 

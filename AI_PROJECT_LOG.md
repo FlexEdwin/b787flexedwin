@@ -321,3 +321,28 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 - Error de consola resuelto.
 - Los indicadores de carga ahora funcionan visualmente.
 - UI restaurada completamente.
+
+### [2025-12-17] - HOTFIX: Infinite Loading en Inicio 🔄
+
+**PROBLEMA:**
+
+- Spinner "Cargando bancos..." infinito al iniciar la app.
+- `listaBancos` vacío a pesar de tener sesión activa.
+
+**CAUSA:**
+
+- `initApp()` verificaba sesión pero **NO invocaba** `cargarBancos()` en la ruta de éxito (o lo hacía incorrectamente).
+- `cargarBancos()` no apagaba el flag `this.cargando` en su bloque `finally`.
+
+**SOLUCIÓN:**
+
+- **Refactor de `initApp`:**
+  - Se añadió lógica explícita: `if (session) { await cargarBancos(); }`.
+  - Se agregó listener `sb.auth.onAuthStateChange` para recargar bancos al hacer login.
+- **Robustez en `cargarBancos`:**
+  - Inicio: `this.cargando = true`.
+  - Finally: `this.cargando = false` (Garantizado).
+
+**RESULTADO:**
+
+- Carga de datos inicial robusta y sin bloqueos.
