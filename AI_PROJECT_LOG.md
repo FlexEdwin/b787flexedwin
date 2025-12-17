@@ -404,3 +404,19 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 
 - Validación de respuestas 100% precisa.
 - Guardado en base de datos restaurado.
+
+### [2025-12-17] - POLISH SPRINT: UI & Calidad de Código ✨
+
+**VISUAL (UI):**
+
+- **Scroll Fix:** Se eliminó la restricción de altura (`overflow-hidden`) en las tarjetas de preguntas para permitir scroll natural en contenidos extensos.
+- **Limpieza Visual:** Las opciones vacías (null/blanks) se filtran dinámicamente antes de renderizarse, eliminando botones "fantasmas" (C/D) en preguntas de True/False.
+
+**CÓDIGO (JS):**
+
+- **Refactorización:** Se eliminaron bloques duplicados de funciones de autenticación (`login`, `logout`) que causaban redundancia.
+- **Robustez:** La función `mezclarOpciones` ahora incluye validación estricta de contenido.
+
+**ESTADO ACTUAL:**
+
+- Sistema optimizado para QA final.

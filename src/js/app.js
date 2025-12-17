@@ -314,48 +314,7 @@ volverAlDashboard() {
     this.resetStats();
 },
 
-        async login() {
-            this.cargandoAuth = true;
-            try {
-                const { data, error } = await sb.auth.signInWithPassword({
-                    email: this.auth.email,
-                    password: this.auth.password,
-                });
-                if (error) throw error;
-                this.auth.user = data.user;
-                this.vistaActual = 'inicio';
-                await this.cargarBancos();
-                this.showToast('¡Bienvenido de nuevo!');
-            } catch (e) {
-                console.error(e);
-                this.showToast(e.message, 'error');
-            } finally {
-                this.cargandoAuth = false;
-            }
-        },
 
-        async loginAnonimo() {
-            this.cargandoAuth = true;
-            // Simular login anónimo (o usar signInAnonymously si estuviera habilitado en Supabase)
-            // Para este caso, solo pasamos a la vista de inicio sin usuario en auth.user real, 
-            // pero mantenemos el flujo de la app.
-            
-            // Opcional: Si quieres persistencia mínima
-            // this.auth.user = { id: 'anon', email: 'invitado@b787.app' }; 
-            
-            this.vistaActual = 'inicio';
-            await this.cargarBancos();
-            this.showToast('Entrando como invitado...');
-            this.cargandoAuth = false;
-        },
-
-        async logout() {
-            await sb.auth.signOut();
-            this.auth.user = null;
-            this.vistaActual = 'login';
-            this.atas = [];
-            this.showToast('Sesión cerrada');
-        },
 
         // --- LÓGICA DEL QUIZ ---
         recuperarSesion() {
@@ -558,25 +517,42 @@ siguientePregunta() {
 
         // --- UTILIDADES Y AUXILIARES ---
         mezclarOpciones(retornar = false) {
-            // Algoritmo Fisher-Yates para mezclar ['A', 'B', 'C', 'D']
-            const opciones = ['A', 'B', 'C', 'D'];
-            for (let i = opciones.length - 1; i > 0; i--) {
+            // 1. Obtener opciones crudas que NO sean vacías
+            const raw = [
+                { letra: 'A', texto: this.preguntaActual.opcion_a },
+                { letra: 'B', texto: this.preguntaActual.opcion_b },
+                { letra: 'C', texto: this.preguntaActual.opcion_c },
+                { letra: 'D', texto: this.preguntaActual.opcion_d }
+            ].filter(o => o.texto && o.texto.trim() !== '');
+
+            // 2. Crear array de identificadores reales disponibles (ej: ['A', 'B', 'C'])
+            let disponibles = raw.map(r => r.letra);
+
+            // 3. Algoritmo Fisher-Yates para mezclar los disponibles
+            for (let i = disponibles.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [opciones[i], opciones[j]] = [opciones[j], opciones[i]];
+                [disponibles[i], disponibles[j]] = [disponibles[j], disponibles[i]];
             }
             
-            // 🆕 LOGIC: Mapear el orden aleatorio a objetos de visualización fijos
-            const opcionesMapeadas = ['A', 'B', 'C', 'D'].map((letraVisual, index) => {
-                const letraReal = opciones[index];
+            // 4. Mapear: Visual (A,B,C...) -> Real (Mezclado)
+            // IMPORTANTE: visualLetters debe coincidir en longitud con las disponibles
+            const visualLetters = ['A', 'B', 'C', 'D'].slice(0, disponibles.length);
+            
+            const opcionesMapeadas = visualLetters.map((letraVisual, index) => {
+                const letraReal = disponibles[index];
                 return {
-                    letra: letraVisual, // Visual: siempre A, B, C, D
-                    texto: this.obtenerTextoOpcion(letraReal) // Contenido: mezclado
+                    letra: letraVisual, // Visual: A, B, C (secuencial)
+                    texto: this.obtenerTextoOpcion(letraReal), // Contenido: mezclado
+                    real: letraReal // Guardamos la real para referencia
                 };
             });
-            this.opcionesActuales = opcionesMapeadas;
 
-            if (retornar) return opciones;
-            this.ordenOpciones = opciones;
+            this.opcionesActuales = opcionesMapeadas;
+            // Guardamos el mapeo inverso para saber qué letra Real corresponde a la Visual
+            // visual 'A' -> index 0 -> disponibles[0] es la letra Real
+            this.ordenOpciones = disponibles;
+
+            if (retornar) return disponibles;
         },
 
         guardarEstadoLocal() {
