@@ -420,3 +420,20 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 **ESTADO ACTUAL:**
 
 - Sistema optimizado para QA final.
+
+### [2025-12-17] - HOTFIX: Phantom Options & Save Error 👻💾
+
+**PROBLEMA 1: "Phantom Options" & "Ghost Buttons"**
+
+- **Causa:** Preguntas con `< 4` opciones mostraban botones vacíos (C/D) que podían clickearse y validarse.
+- **Solución:** `mezclarOpciones()` ahora filtra agresivamente `null`, `undefined`, `""` y el string literals `'null'` antes de generar `opcionesActuales`. El template HTML solo renderiza lo que "sobrevive" al filtro.
+
+**PROBLEMA 2: Fallo de Guardado (Error 400)**
+
+- **Causa:** La RPC `guardar_respuesta` fallaba silenciosamente en modo Repaso porque no recibía `p_user_id` explícito.
+- **Solución:** Se extrae `const uid = auth.user.id` de forma segura y se inyecta en la llamada RPC. Se agregó manejo de errores (try/catch) robusto.
+
+**RESULTADO:**
+
+- Adiós a botones vacíos.
+- Modo Repaso 100% funcional.

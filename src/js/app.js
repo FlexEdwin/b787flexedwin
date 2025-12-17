@@ -446,17 +446,20 @@ volverAlDashboard() {
 
             // 💾 PERSISTENCIA PRIMERO (Critical Path)
             try {
+                // EXTRACCIÓN ROBUSTA DE ID
+                const uid = this.auth.user?.id;
+                if (!uid) console.error("CRITICAL: No User ID detected for RPC save");
+
                 // Solo guardamos si hay usuario (aunque la lógica RPC lo maneja)
-                if (this.auth.user) {
-                    await sb.rpc('guardar_respuesta', {
-                        p_pregunta_id: this.preguntaActual.id,
-                        p_es_correcta: esCorrecta,
-                        p_banco_id: this.bancoSeleccionado || 'b787',
-                        p_modo_estudio: this.modoEstudio,
-                        p_user_id: this.auth.user.id // 🔒 FIX: ID Explícito para evitar falla en RPC
-                    });
-                    console.log('💾 Respuesta guardada en DB');
-                }
+                // Usamos await obligatorio
+                await sb.rpc('guardar_respuesta', {
+                    p_pregunta_id: this.preguntaActual.id,
+                    p_es_correcta: esCorrecta,
+                    p_banco_id: this.bancoSeleccionado || 'b787',
+                    p_modo_estudio: this.modoEstudio,
+                    p_user_id: uid // <--- ESTO ES LO QUE ARREGLA EL REPASO
+                });
+                console.log('💾 Respuesta guardada en DB');
             } catch (e) {
                 console.error('❌ Error guardando respuesta:', e);
                 // No bloqueamos la UI por error de guardado, pero lo logueamos
@@ -471,9 +474,7 @@ volverAlDashboard() {
                 this.stats.racha = 0;
             }
 
-
-            // ------------------------------------------
-
+            // --- RETROALIMENTACIÓN DB ---
             this.guardarEstadoLocal();
 
             if (esCorrecta) {
@@ -484,30 +485,30 @@ volverAlDashboard() {
         },
 
         // 🆕 BATCH: Navegación dentro del lote (client-side)
-siguientePregunta() {
-    // Reset visual states
-    this.bloqueado = false;
-    this.seleccionada = null;
-    this.mostrarSiguiente = false;
-    
-    // Navigate to next question
-    this.indiceActual++;
-    
-    // 🎯 Check if batch is complete
-    if (this.indiceActual >= this.preguntas.length) {
-        const stats = `¡Lote completado!\n\nHas respondido ${this.preguntas.length} preguntas.\n\n✅ Correctas: ${this.stats.correctas}\n❌ Incorrectas: ${this.stats.incorrectas}\n🎯 Racha: ${this.stats.racha}`;
-        alert(stats);
-        this.volverAlDashboard();
-        return;
-    }
-    
-    // Shuffle options for next question
-    this.mezclarOpciones();
-    this.guardarEstadoLocal();
-},
+        siguientePregunta() {
+            // Reset visual states
+            this.bloqueado = false;
+            this.seleccionada = null;
+            this.mostrarSiguiente = false;
+            
+            // Navigate to next question
+            this.indiceActual++;
+            
+            // 🎯 Check if batch is complete
+            if (this.indiceActual >= this.preguntas.length) {
+                const stats = `¡Lote completado!\n\nHas respondido ${this.preguntas.length} preguntas.\n\n✅ Correctas: ${this.stats.correctas}\n❌ Incorrectas: ${this.stats.incorrectas}\n🎯 Racha: ${this.stats.racha}`;
+                alert(stats);
+                this.volverAlDashboard();
+                return;
+            }
+            
+            // Shuffle options for next question
+            this.mezclarOpciones();
+            this.guardarEstadoLocal();
+        },
 
         handleTeclado(e) {
-            if (this.vista !== 'quiz') return;
+            if (this.vistaActual !== 'quiz') return;
             if (this.mostrarSiguiente && e.key === 'Enter') return this.siguientePregunta();
             if (this.bloqueado) return;
 
@@ -517,13 +518,13 @@ siguientePregunta() {
 
         // --- UTILIDADES Y AUXILIARES ---
         mezclarOpciones(retornar = false) {
-            // 1. Obtener opciones crudas que NO sean vacías
+            // 1. Obtener opciones crudas FILTRANDO VACÍAS / NULL / UNDEFINED
             const raw = [
                 { letra: 'A', texto: this.preguntaActual.opcion_a },
                 { letra: 'B', texto: this.preguntaActual.opcion_b },
                 { letra: 'C', texto: this.preguntaActual.opcion_c },
                 { letra: 'D', texto: this.preguntaActual.opcion_d }
-            ].filter(o => o.texto && o.texto.trim() !== '');
+            ].filter(o => o.texto && o.texto.trim() !== '' && o.texto !== 'null');
 
             // 2. Crear array de identificadores reales disponibles (ej: ['A', 'B', 'C'])
             let disponibles = raw.map(r => r.letra);
@@ -548,8 +549,6 @@ siguientePregunta() {
             });
 
             this.opcionesActuales = opcionesMapeadas;
-            // Guardamos el mapeo inverso para saber qué letra Real corresponde a la Visual
-            // visual 'A' -> index 0 -> disponibles[0] es la letra Real
             this.ordenOpciones = disponibles;
 
             if (retornar) return disponibles;
