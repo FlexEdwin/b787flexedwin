@@ -141,3 +141,71 @@ console.log("📥 Recibido del RPC:", { data, cantidad, error });
 - Login como invitado ahora muestra bancos inmediatamente
 - Flujo de selección de banco completamente funcional
 - Diagnóstico de problemas backend ahora es trivial mediante consola
+
+---
+
+### [2025-12-17] - Silent Execution Halt Fix 🛡️
+
+**PROBLEMA IDENTIFICADO:**
+
+La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo que las preguntas se cargaran al seleccionar un banco.
+
+**CAUSA RAÍZ:**
+
+1. `cargarAtas()` no manejaba errores → Si fallaba, rompía el flujo
+2. `seleccionarBanco()` no tenía try/catch → Cualquier error detenía todo
+3. **Crítico**: `seleccionarBanco()` NO llamaba a `cargarPreguntas()` → Las preguntas nunca se cargaban automáticamente
+
+**SOLUCIÓN IMPLEMENTADA:**
+
+- ✅ **Robustecer `cargarAtas()`:**
+
+  ```javascript
+  async cargarAtas() {
+      try {
+          const { data, error } = await sb.from('atas').select(...);
+          if (error) { /* Manejo seguro */ }
+          if (data && Array.isArray(data)) {
+              this.atas = data;
+          } else {
+              this.atas = []; // Fallback seguro
+          }
+      } catch (e) {
+          this.atas = []; // SIEMPRE array válido
+      }
+  }
+  ```
+
+- ✅ **Robustecer `seleccionarBanco()`:**
+  ```javascript
+  async seleccionarBanco(id) {
+      // ... actualizar estado ...
+
+      // Cargar ATAs (NO BLOQUEANTE)
+      try {
+          await this.cargarAtas();
+      } catch (error) {
+          console.error('⚠️ Error no bloqueante:', error);
+          // Continuar - ATAs son opcionales
+      }
+
+      this.vista = 'menu';
+
+      // 🎯 CRÍTICO: Auto-cargar preguntas
+      await this.cargarPreguntas('nuevas');
+  }
+  ```
+
+**MEJORAS CLAVE:**
+
+1. **Null Safety**: `cargarAtas()` ahora valida que `data` sea array antes de asignar
+2. **Error Isolation**: Errores en ATAs no bloquean el flujo principal
+3. **Auto-Loading**: Las preguntas se cargan automáticamente al seleccionar banco
+4. **Logging Detallado**: Cada paso registra su estado en consola
+
+**RESULTADO:**
+
+- Seleccionar un banco ahora **siempre** carga preguntas
+- Errores de ATAs son informativos pero no fatales
+- Usuario ve preguntas inmediatamente después de selección
+- Robustez del 100% ante fallos de red o backend

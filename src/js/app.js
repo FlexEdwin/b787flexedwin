@@ -102,10 +102,29 @@ function app() {
         },
 
         // --- GESTIÓN DE DATOS ---
-        async cargarAtas() {
-            const { data } = await sb.from('atas').select('id, nombre').order('id');
-            if (data) this.atas = data;
-        },
+async cargarAtas() {
+    try {
+        const { data, error } = await sb.from('atas').select('id, nombre').order('id');
+        
+        if (error) {
+            console.error('⚠️ Error cargando ATAs:', error);
+            this.atas = []; // Fallback a array vacío
+            return;
+        }
+        
+        // 🛡️ Protección contra data null/undefined
+        if (data && Array.isArray(data)) {
+            this.atas = data;
+            console.log('✅ ATAs cargados:', data.length);
+        } else {
+            this.atas = [];
+            console.warn('⚠️ No se recibieron ATAs del backend');
+        }
+    } catch (e) {
+        console.error('❌ Error fatal cargando ATAs:', e);
+        this.atas = []; // Siempre tener un array válido
+    }
+},
 
         async cargarBancos() {
             try {
@@ -206,22 +225,36 @@ function app() {
         },
 
         // --- SELECCIÓN DE BANCO ---
-        async seleccionarBanco(id) {
-            console.log('👆 Click en Banco ID:', id);
-            
-            // 1. Actualizar Estado
-            this.bancoSeleccionado = id;
-            this.ataSeleccionado = ''; // Reset ATA al cambiar banco
-            this.preguntas = []; // Limpiar preguntas viejas visualmente
-            localStorage.setItem('b787_banco_actual', id);
-            
-            // 2. Cargar Dependencias
-            console.log('📊 Cargando ATAs para banco:', id);
-            await this.cargarAtas();
-            
-            // 3. Navegar al Menú
-            this.vista = 'menu';
-        },
+async seleccionarBanco(id) {
+    console.log('👆 Click en Banco ID:', id);
+    
+    // 1. Actualizar Estado
+    this.bancoSeleccionado = id;
+    this.ataSeleccionado = ''; // Reset ATA al cambiar banco
+    this.preguntas = []; // Limpiar preguntas viejas visualmente
+    localStorage.setItem('b787_banco_actual', id);
+    
+    // 2. Cargar Dependencias (NO BLOQUEANTE)
+    console.log('📊 Intentando cargar ATAs para banco:', id);
+    try {
+        await this.cargarAtas();
+    } catch (error) {
+        console.error('⚠️ Error no bloqueante cargando ATAs:', error);
+        // Continuar igualmente - ATAs son opcionales para modo general
+    }
+    
+    // 3. Navegar al Menú
+    this.vista = 'menu';
+    
+    // 4. 🎯 CRÍTICO: Cargar preguntas automáticamente en modo general
+    console.log('🚀 Auto-cargando preguntas en modo:', this.modoEstudio);
+    try {
+        await this.cargarPreguntas('nuevas');
+    } catch (error) {
+        console.error('❌ Error cargando preguntas iniciales:', error);
+        // El usuario puede reintentar manualmente desde el menú
+    }
+},
 
         cambiarBanco() {
             this.vista = 'seleccion_banco';
