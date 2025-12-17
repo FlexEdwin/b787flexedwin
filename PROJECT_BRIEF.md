@@ -57,6 +57,19 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar tres
 - **Validación**: Se acepta la validación en el lado del cliente (Client-side) para reducir latencia y costes de servidor.
 - **Integridad**: Se asume que el usuario no hará trampas (revisar consola) ya que el incentivo es el auto-aprendizaje honesto.
 
+### 4.4 Lógica de Aprendizaje (Algoritmo de Doble Validación)
+
+1.  **Modo General (Maestría)**:
+
+    - Objetivo: Retirar preguntas del mazo activo.
+    - Criterio de Retiro: 2 respuestas correctas _consecutivas_ en modo General.
+    - Penalización: Un fallo reinicia el contador de aciertos a 0 y envía la pregunta a "Repaso".
+
+2.  **Modo Repaso (Cuarentena)**:
+    - Objetivo: Devolver preguntas al mazo General.
+    - Criterio de Alta: 2 respuestas correctas _consecutivas_ en modo Repaso.
+    - Dinámica: Una pregunta en repaso NO aparece en General hasta que se gradúa.
+
 ---
 
 ## 5. Arquitectura Técnica

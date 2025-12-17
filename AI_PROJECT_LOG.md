@@ -66,3 +66,32 @@
 
 - Creada documentación base (Brief y Contexto).
 - Objetivo inmediato: Implementar soporte para múltiples bancos de preguntas.
+
+---
+
+### [2025-12-17] - Double Validation UI Integration ✅
+
+**IMPLEMENTACIÓN COMPLETADA:**
+
+- ✅ Agregado estado `modoEstudio` a `app.js` (valores: `'general'` | `'repaso'`)
+- ✅ Actualizada función `cargarPreguntas()` con bifurcación por modo:
+  - **Modo General**: Llama RPC `obtener_general` con `p_banco_id`, `p_ata_id`, `cantidad`
+  - **Modo Repaso**: Llama RPC `obtener_repaso` con `p_banco_id`, `cantidad`
+- ✅ Implementado manejo inteligente de vacío:
+  - Modo General vacío → Alert "Has completado todas las preguntas"
+  - Modo Repaso vacío → Auto-switch a General + Alert "No tienes fallos pendientes"
+- ✅ Actualizada función `responder()` para usar RPC `guardar_respuesta` con parámetro `p_modo_estudio`
+- ✅ Agregado selector de modo en UI (tabs visuales con feedback activo)
+- ✅ Actualizado getter `modoTexto` para indicar modo activo en display
+
+**RPCS INTEGRADAS:**
+
+- `obtener_general(p_banco_id, p_ata_id, cantidad)` - Preguntas generales con doble validación
+- `obtener_repaso(p_banco_id, cantidad)` - Solo preguntas falladas pendientes
+- `guardar_respuesta(p_pregunta_id, p_es_correcta, p_modo_estudio)` - Guardado con contexto de modo
+
+**RESULTADO:**
+
+- Sistema ahora implementa lógica de "Doble Validación" completa
+- Usuario puede alternar entre estudio general y repaso de fallos visualmente
+- Backend recibe contexto de modo para aplicar reglas de progresión correctas

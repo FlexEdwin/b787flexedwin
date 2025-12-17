@@ -273,6 +273,70 @@
                     <div class="text-yellow-600 group-hover:translate-x-1 transition-transform">➜</div>
                 </div>
 
+                <!-- 🎯 SELECTOR DE MODO DE ESTUDIO -->
+                <div class="mb-8 bg-white border border-gray-200 rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-gray-600 uppercase mb-4 tracking-wider">Modo de Estudio</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Tab: Estudio General -->
+                        <button @click="modoEstudio = 'general'" 
+                                class="relative overflow-hidden rounded-xl px-6 py-4 text-left transition-all duration-300 border-2"
+                                :class="{
+                                    'bg-blue-500 border-blue-600 text-white shadow-lg': modoEstudio === 'general',
+                                    'bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50': modoEstudio !== 'general'
+                                }">
+                            <div class="flex items-center gap-3">
+                                <div class="text-2xl" x-text="modoEstudio === 'general' ? '🧠' : '📚'"></div>
+                                <div>
+                                    <h4 class="font-bold text-lg" 
+                                        :class="modoEstudio === 'general' ? 'text-white' : 'text-gray-900'">
+                                        Estudio General
+                                    </h4>
+                                    <p class="text-xs mt-1" 
+                                       :class="modoEstudio === 'general' ? 'text-blue-100' : 'text-gray-500'">
+                                        Preguntas nuevas y revisiones
+                                    </p>
+                                </div>
+                            </div>
+                            <!-- Active Indicator -->
+                            <div x-show="modoEstudio === 'general'" 
+                                 class="absolute top-2 right-2 bg-white/20 rounded-full p-1">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </button>
+
+                        <!-- Tab: Repasar Fallos -->
+                        <button @click="modoEstudio = 'repaso'" 
+                                class="relative overflow-hidden rounded-xl px-6 py-4 text-left transition-all duration-300 border-2"
+                                :class="{
+                                    'bg-red-500 border-red-600 text-white shadow-lg': modoEstudio === 'repaso',
+                                    'bg-white border-gray-200 text-gray-600 hover:border-red-300 hover:bg-red-50': modoEstudio !== 'repaso'
+                                }">
+                            <div class="flex items-center gap-3">
+                                <div class="text-2xl" x-text="modoEstudio === 'repaso' ? '🚑' : '⚠️'"></div>
+                                <div>
+                                    <h4 class="font-bold text-lg" 
+                                        :class="modoEstudio === 'repaso' ? 'text-white' : 'text-gray-900'">
+                                        Repasar Fallos
+                                    </h4>
+                                    <p class="text-xs mt-1" 
+                                       :class="modoEstudio === 'repaso' ? 'text-red-100' : 'text-gray-500'">
+                                        Solo preguntas falladas
+                                    </p>
+                                </div>
+                            </div>
+                            <!-- Active Indicator -->
+                            <div x-show="modoEstudio === 'repaso'" 
+                                 class="absolute top-2 right-2 bg-white/20 rounded-full p-1">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="grid md:grid-cols-3 gap-6">
                     <!-- Card: Estudio General -->
                     <button @click="cargarPreguntas('nuevas')"

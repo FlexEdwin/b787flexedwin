@@ -24,6 +24,7 @@ function app() {
 
         // --- ESTADO DEL QUIZ ---
         modo: '',
+        modoEstudio: 'general', // 'general' o 'repaso' - Double Validation Logic
         preguntas: [],
         indiceActual: 0,
         bloqueado: false,
@@ -43,7 +44,8 @@ function app() {
         },
         get modoTexto() {
             const map = { 'nuevas': 'Estudio General', 'ata': 'Por Categoría', 'fallos': 'Repaso de Fallos' };
-            return map[this.modo] || 'Estudio';
+            const modoDisplay = this.modoEstudio === 'repaso' ? ' (Repaso)' : ' (General)';
+            return (map[this.modo] || 'Estudio') + modoDisplay;
         },
         get progresoPorcentaje() {
             return this.preguntas.length ? ((this.indiceActual + 1) / this.preguntas.length) * 100 : 0;
@@ -245,25 +247,50 @@ function app() {
             this.resetStats();
 
             try {
-                let rpc = this.modo === 'fallos' ? 'repasar_falladas' : 'estudiar_preguntas';
-                let params = { p_banco_id: this.bancoSeleccionado }; // 🆕 Always pass banco_id
+                let rpcName, params;
 
-                if (this.modo === 'nuevas') {
-                    params.filtro_ata_id = null;
-                } else if (this.modo === 'ata') {
-                    const ataIdNumerico = parseInt(entrada);
-                    params.filtro_ata_id = ataIdNumerico;
+                // 🎯 DOBLE VALIDACIÓN: Bifurcación por Modo de Estudio
+                if (this.modoEstudio === 'repaso') {
+                    // CASO 1: Modo Repaso - Usar obtener_repaso
+                    rpcName = 'obtener_repaso';
+                    params = { 
+                        p_banco_id: this.bancoSeleccionado,
+                        cantidad: 1 
+                    };
+                } else {
+                    // CASO 2: Modo General - Usar obtener_general
+                    rpcName = 'obtener_general';
+                    params = { 
+                        p_banco_id: this.bancoSeleccionado,
+                        p_ata_id: null, // Can be set for ATA filtering
+                        cantidad: 1 
+                    };
+
+                    // Si el usuario seleccionó un ATA específico
+                    if (this.modo === 'ata') {
+                        params.p_ata_id = parseInt(entrada);
+                    }
                 }
 
-                console.log('📡 Cargando preguntas con params:', params);
-                const { data, error } = await sb.rpc(rpc, params);
+                console.log('📡 Cargando preguntas:', { rpc: rpcName, params, modoEstudio: this.modoEstudio });
+                const { data, error } = await sb.rpc(rpcName, params);
 
                 if (error) throw error;
 
+                // 🚫 MANEJO DE VACÍO: Diferentes estrategias según el modo
                 if (!data || data.length === 0) {
-                    this.showToast('¡Todo al día! No hay preguntas pendientes.', 'info');
-                    this.volverAlMenu();
-                    return;
+                    if (this.modoEstudio === 'repaso') {
+                        // No hay fallos pendientes - AUTO-SWITCH a modo general
+                        alert('¡Excelente! No tienes fallos pendientes.');
+                        this.modoEstudio = 'general';
+                        // Reintentar en modo general
+                        return this.cargarPreguntas(entrada);
+                    } else {
+                        // Modo general vacío - Todo maestrado
+                        alert('¡Increíble! Has completado todas las preguntas disponibles. Revisa tus fallos o resetea el progreso.');
+                        this.volverAlMenu();
+                        return;
+                    }
                 }
 
                 this.preguntas = data;
@@ -301,18 +328,20 @@ function app() {
                 this.stats.racha = 0;
             }
 
-            // --- DIAGNÓSTICO: INTENTO DE GUARDADO ---
-            console.log("📡 Intentando guardar en DB:", {
+            // --- GUARDADO CON DOBLE VALIDACIÓN ---
+            console.log("📡 Guardando respuesta en DB:", {
                 pregunta_id: this.preguntaActual.id,
                 es_correcta: esCorrecta,
+                modo_estudio: this.modoEstudio,
                 usuario: this.auth.user?.id,
                 visual: letraVisual,
                 real: letraReal
             });
 
-            const { data, error } = await sb.rpc('registrar_respuesta', {
+            const { data, error } = await sb.rpc('guardar_respuesta', {
                 p_pregunta_id: this.preguntaActual.id,
-                es_correcta: esCorrecta
+                p_es_correcta: esCorrecta,
+                p_modo_estudio: this.modoEstudio // 🎯 KEY: Envía el modo de estudio
             });
 
             if (error) {

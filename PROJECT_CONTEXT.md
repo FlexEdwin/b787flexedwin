@@ -96,6 +96,15 @@ El backend delega lógica compleja a funciones de base de datos para seguridad y
 | atas      | allow_anonymous_read_atas                | SELECT    | {anon}               |
 | atas      | allow_authenticated_read_atas            | SELECT    | {authenticated}      |
 
+### Reglas de Base de Datos (Respuestas)
+
+Para soportar el algoritmo de Doble Validación, la tabla `respuestas` debe registrar el `modo_estudio` en el que se respondió ('general' o 'repaso').
+
+**Cálculo de Estados (Vía RPC):**
+
+- **Estado 'Retirada'**: `COUNT(consecutive_correct_general) >= 2`
+- **Estado 'En Repaso'**: La última respuesta en General fue FALLO, y `COUNT(consecutive_correct_repaso) < 2`.
+
 ---
 
 ## 4. Estado Actual del Proyecto
