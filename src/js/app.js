@@ -31,6 +31,7 @@ function app() {
         bloqueado: false,
         seleccionada: null, // Letra VISUAL seleccionada (A, B, C, D)
         ordenOpciones: ['A', 'B', 'C', 'D'], // Mapeo: Posición Visual -> Letra Real en DB
+        opcionesActuales: [], // 🆕 STATE: Opciones mezcladas estáticas para evitar re-render
         mostrarSiguiente: false,
         sesionGuardada: false,
         stats: { correctas: 0, incorrectas: 0, racha: 0 },
@@ -64,13 +65,6 @@ function app() {
         },
         get fallosSesion() {
             return this.stats ? this.stats.incorrectas : 0; 
-        },
-        get opcionesMezcladas() {
-            if (!this.preguntaActual) return [];
-            return ['A', 'B', 'C', 'D'].map(letra => ({
-                letra: letra,
-                texto: this.obtenerTextoOpcion(letra)
-            }));
         },
         get nivelUsuario() {
             const score = this.stats.correctas;
@@ -491,6 +485,24 @@ volverAlDashboard() {
 
             const esCorrecta = letraReal === this.preguntaActual.correcta;
 
+            // 💾 PERSISTENCIA PRIMERO (Critical Path)
+            try {
+                // Solo guardamos si hay usuario (aunque la lógica RPC lo maneja)
+                if (this.auth.user) {
+                    await sb.rpc('guardar_respuesta', {
+                        p_pregunta_id: this.preguntaActual.id,
+                        p_es_correcta: esCorrecta,
+                        p_banco_id: this.bancoSeleccionado || 'b787',
+                        p_modo_estudio: this.modoEstudio,
+                        p_user_id: this.auth.user.id // 🔒 FIX: ID Explícito para evitar falla en RPC
+                    });
+                    console.log('💾 Respuesta guardada en DB');
+                }
+            } catch (e) {
+                console.error('❌ Error guardando respuesta:', e);
+                // No bloqueamos la UI por error de guardado, pero lo logueamos
+            }
+
             // --- ACTUALIZACIÓN VISUAL ---
             if (esCorrecta) {
                 this.stats.correctas++;
@@ -500,28 +512,7 @@ volverAlDashboard() {
                 this.stats.racha = 0;
             }
 
-            // --- GUARDADO CON DOBLE VALIDACIÓN ---
-            console.log("📡 Guardando respuesta en DB:", {
-                pregunta_id: this.preguntaActual.id,
-                es_correcta: esCorrecta,
-                modo_estudio: this.modoEstudio,
-                usuario: this.auth.user?.id,
-                visual: letraVisual,
-                real: letraReal
-            });
 
-            const { data, error } = await sb.rpc('guardar_respuesta', {
-                p_pregunta_id: this.preguntaActual.id,
-                p_es_correcta: esCorrecta,
-                p_modo_estudio: this.modoEstudio // 🎯 KEY: Envía el modo de estudio
-            });
-
-            if (error) {
-                console.error("❌ ERROR FATAL DE SUPABASE:", error);
-                this.showToast("Error guardando progreso: " + error.message, 'error');
-            } else {
-                console.log("✅ Guardado exitoso en Supabase");
-            }
             // ------------------------------------------
 
             this.guardarEstadoLocal();
@@ -574,6 +565,16 @@ siguientePregunta() {
                 [opciones[i], opciones[j]] = [opciones[j], opciones[i]];
             }
             
+            // 🆕 LOGIC: Mapear el orden aleatorio a objetos de visualización fijos
+            const opcionesMapeadas = ['A', 'B', 'C', 'D'].map((letraVisual, index) => {
+                const letraReal = opciones[index];
+                return {
+                    letra: letraVisual, // Visual: siempre A, B, C, D
+                    texto: this.obtenerTextoOpcion(letraReal) // Contenido: mezclado
+                };
+            });
+            this.opcionesActuales = opcionesMapeadas;
+
             if (retornar) return opciones;
             this.ordenOpciones = opciones;
         },

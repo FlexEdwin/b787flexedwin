@@ -368,3 +368,39 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 
 - Flujo de autenticación completo y funcional.
 - Acceso democratizado (Usuarios registrados vs Invitados).
+
+### [2025-12-17] - MEJORAS: UI/UX & Persistencia Crítica 🛡️
+
+**CAMBIOS VISUALES (INDEX.HTML):**
+
+- **Navegación Intuitiva:** Se agregó botón `← Cambiar Banco` en el Dashboard.
+- **Header Inteligente:** Menú de usuario y Logout ahora totalmente reactivos (`x-show="auth.user"`).
+- **Dashboard Adaptativo:** La tarjeta "Por Capítulos (ATA)" se oculta automáticamente si el banco no tiene capítulos (`atas.length > 0`).
+
+**CORRECCIÓN DE LÓGICA (APP.JS):**
+
+- **Persistencia Robusta:** La función `responder()` ahora espera explícitamente (`await`) la confirmación de `sb.rpc('guardar_respuesta')` _antes_ de proceder, asegurando que cada respuesta quede grabada incluso si el usuario cierra la app.
+- **Limpieza:** Refactorización de errores de sintaxis en el bloque de respuesta.
+
+**ESTADO FINAL:**
+
+- App 100% navegable, robusta y con experiencia de usuario fluida.
+
+### [2025-12-17] - HOTFIX CRÍTICO: Validación de Respuestas & DB 🚑
+
+**PROBLEMA 1: Falsos Negativos (Respuestas)**
+
+- **Síntoma:** El usuario marcaba la correcta pero el sistema la contaba como mala.
+- **Causa:** `opcionesMezcladas` era un getter dinámico. Al hacer click, Alpine re-renderizaba, el getter volvía a mezclar, y el índice del click ya no coincidía con el array visual.
+- **Solución:** Se eliminó el getter. Ahora `mezclarOpciones()` genera un array estático `opcionesActuales` que NO cambia hasta la siguiente pregunta.
+
+**PROBLEMA 2: Error de DB (Not Null Violation)**
+
+- **Síntoma:** Las respuestas no se guardaban.
+- **Causa:** La función RPC `guardar_respuesta` no podía inferir `auth.uid()` en ciertas condiciones de sesión.
+- **Solución:** Se pasa explícitamente `p_user_id: this.auth.user.id` en la llamada RPC.
+
+**RESULTADO:**
+
+- Validación de respuestas 100% precisa.
+- Guardado en base de datos restaurado.

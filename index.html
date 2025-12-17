@@ -143,9 +143,15 @@
             <!-- Header Dashboard -->
             <div class="flex items-center justify-between mb-8 border-b border-slate-700 pb-6">
                 <div>
-                    <h2 class="text-3xl font-bold text-white mb-1">
-                        <span x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre">Banco</span>
-                    </h2>
+                    <div class="flex items-center gap-3 mb-1">
+                        <h2 class="text-3xl font-bold text-white">
+                            <span x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre">Banco</span>
+                        </h2>
+                        <button @click="vistaActual = 'inicio'" 
+                                class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1 rounded-full transition-colors flex items-center gap-1">
+                            <span>← Cambiar Banco</span>
+                        </button>
+                    </div>
                     <p class="text-slate-400">Panel de Control de Entrenamiento</p>
                 </div>
                 <div class="text-right hidden sm:block">
@@ -170,7 +176,7 @@
                 </button>
 
                 <!-- 2. Capítulos -->
-                <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl relative">
+                <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl relative" x-show="atas.length > 0">
                     <div class="text-4xl mb-4">⚙️</div>
                     <h3 class="text-xl font-bold text-white mb-4">Por Capítulos (ATA)</h3>
                     
@@ -192,15 +198,15 @@
                 </div>
 
                 <!-- 3. Repaso -->
-                <button @click="comenzarQuiz('repaso')" 
-                        class="relative overflow-hidden group bg-slate-800 border border-slate-700 hover:border-red-500/50 p-8 rounded-2xl text-left transition-all">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-red-500">
-                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>
+                <div @click="comenzarQuiz('repaso')" 
+                        class="bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-blue-500/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <svg class="w-24 h-24 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                     </div>
                     <div class="text-4xl mb-4">🚑</div>
                     <h3 class="text-xl font-bold text-white mb-2">Repaso Inteligente</h3>
                     <p class="text-slate-400 text-sm">El algoritmo seleccionará tus fallos previos y preguntas "en cuarentena".</p>
-                </button>
+                </div>
             </div>
         </section>
 
@@ -240,7 +246,7 @@
 
                 <!-- Opciones -->
                 <div class="space-y-3">
-                    <template x-for="opcion in opcionesMezcladas" :key="opcion.letra">
+                    <template x-for="opcion in opcionesActuales" :key="opcion.letra">
                         <button @click="responder(opcion.letra)"
                                 :disabled="bloqueado"
                                 class="w-full p-4 rounded-xl text-left transition-all duration-200 border-2 relative group"
