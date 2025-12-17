@@ -250,28 +250,35 @@ async cargarAtas() {
         },
 
         // --- SELECCIÓN DE BANCO ---
-async seleccionarBanco(id) {
-    console.log('👆 Click en Banco ID:', id);
-    this.cargando = true;
-    
-    // 1. Actualizar Estado
-    this.bancoSeleccionado = id;
-    this.ataSeleccionado = '';
-    localStorage.setItem('b787_banco_actual', id);
-    
-    // 2. Cargar Dependencias (NO BLOQUEANTE)
-    console.log('📊 Intentando cargar ATAs para banco:', id);
-    try {
-        await this.cargarAtas();
-    } catch (error) {
-        console.error('⚠️ Error no bloqueante cargando ATAs:', error);
-    }
-    
-    // 3. 🆕 BATCH: Navegamos al dashboard sin cargar preguntas
-    this.vistaActual = 'dashboard';
-    this.cargando = false;
-    console.log('✅ Dashboard listo. Usuario puede elegir modo de estudio.');
-},
+    async seleccionarBanco(id) {
+        console.log('👆 Click en Banco ID:', id);
+        this.cargando = true;
+        
+        // 1. Actualizar Estado
+        this.bancoSeleccionado = id;
+        this.ataSeleccionado = ''; // Reset ATA
+        localStorage.setItem('b787_banco_actual', id);
+
+        // 🚧 RESTRICTION: Only B787 is active for now
+        if (id !== 'b787') {
+            this.vistaActual = 'proximamente';
+            this.cargando = false;
+            return;
+        }
+        
+        // 2. Cargar Dependencias (NO BLOQUEANTE)
+        console.log('📊 Intentando cargar ATAs para banco:', id);
+        try {
+            await this.cargarAtas();
+        } catch (error) {
+            console.error('⚠️ Error no bloqueante cargando ATAs:', error);
+        }
+        
+        // 3. 🆕 BATCH: Navegamos al dashboard sin cargar preguntas
+        this.vistaActual = 'dashboard';
+        this.cargando = false;
+        console.log('✅ Dashboard listo. Usuario puede elegir modo de estudio.');
+    },
 
         cambiarBanco() {
             this.vistaActual = 'inicio';

@@ -185,3 +185,18 @@ Se cerró el ciclo de desarrollo con un sprint intensivo de corrección de error
 **ESTADO FINAL:**
 
 - Plataforma estable, performante y lista para despliegue productivo.
+
+### [2025-12-17] - FEATURE: Bank Restriction & UI Polish 🚧🅰️
+
+**REQUERIMIENTO USUARIO:**
+
+- "Aun no he subido base de datos Inglés/AMOS, deberían salir 'Próximamente'".
+- "Me gustaría que 'b787' estuviera en mayúscula (B787)".
+
+**IMPLEMENTACIÓN:**
+
+- **Routing Condicional (`app.js`):** `seleccionarBanco(id)` ahora verifica si el banco es `b787`.
+  - Si ES `b787` -> Navega al Dashboard.
+  - Si NO ES `b787` -> Navega a nueva vista `proximamente` (estado soft-lock).
+- **Vista 'Próximamente' (`index.html`):** Nueva sección con diseño "Under Construction", icono 🚧 y botón para volver al inicio.
+- **Tipografía (`index.html`):** Añadido `.toUpperCase()` al renderizado de `banco.slug` para forzar "B787".

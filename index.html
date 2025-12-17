@@ -115,7 +115,8 @@
                          class="group relative bg-slate-800 hover:bg-slate-750 border-2 transition-all duration-300 rounded-2xl p-8 cursor-pointer text-center"
                          :class="bancoSeleccionado === banco.id ? 'border-blue-500 bg-blue-500/5 ring-2 ring-blue-500/20' : 'border-slate-700 hover:border-slate-500'">
                         
-                        <div class="text-5xl mb-6 text-slate-300 font-thin group-hover:scale-110 transition-transform duration-300" x-text="banco.slug"></div>
+                        <div class="text-5xl mb-6 text-slate-300 font-thin group-hover:scale-110 transition-transform duration-300" 
+                             x-text="banco.slug ? banco.slug.toUpperCase() : ''"></div>
                         
                         <h3 class="text-2xl font-bold text-white mb-2" x-text="banco.nombre"></h3>
                         <p class="text-sm text-slate-400 leading-relaxed mb-6" x-text="banco.descripcion"></p>
@@ -134,6 +135,23 @@
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
                 <p class="text-slate-400">Cargando bancos de datos...</p>
             </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VISTA: PRÓXIMAMENTE (Coming Soon)          -->
+        <!-- ========================================== -->
+        <section x-show="vistaActual === 'proximamente'" style="display: none;" class="animate-fade-in text-center max-w-lg mx-auto py-20">
+            <div class="text-6xl mb-6">🚧</div>
+            <h2 class="text-3xl font-black text-white mb-4">En Construcción</h2>
+            <p class="text-lg text-slate-400 mb-8 leading-relaxed">
+                Estamos migrando la base de datos para <span class="text-blue-400 font-bold" x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre">este banco</span>.
+                <br>Esta sección estará disponible muy pronto.
+            </p>
+            <button @click="vistaActual = 'inicio'; bancoSeleccionado = 'b787'" 
+                    class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-full transition-all flex items-center gap-2 mx-auto">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                <span>Volver a Selección</span>
+            </button>
         </section>
 
         <!-- ========================================== -->
