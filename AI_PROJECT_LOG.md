@@ -244,6 +244,12 @@ Se cerró el ciclo de desarrollo con un sprint intensivo de corrección de error
   - Ahora el flujo es lineal y fuerza la vista `dashboard` tras cargar metadatos.
 
 - ✅ **FIX SESIÓN (User Undefined):**
+
   - Corregida inicialización de sesión en `initApp` (`this.session = session`).
   - Implementado fallback robusto para obtener `user_id` en `responder()` (`this.session?.user?.id || this.auth.user?.id`).
   - Previene fallos en guardar progreso si la sesión se recarga.
+
+- ✅ **FIX ZOMBIE STATE (Proximamente Loop):**
+  - Eliminada cualquier lógica condicional que desviara a la vista `proximamente`.
+  - Reescrita función `seleccionarBanco` para forzar explícitamente `this.vistaActual = 'dashboard'`.
+  - Asegurada persistencia de la vista correcta en `localStorage`.

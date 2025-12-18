@@ -266,34 +266,23 @@ async cargarAtas() {
 
         // --- SELECCIÓN DE BANCO ---
     async seleccionarBanco(id) {
-        console.log('👆 Click en Banco ID:', id);
+        console.log("📍 FORZANDO VISTA DASHBOARD para banco:", id);
         this.cargando = true;
-        
-        // 1. Actualizar Estado
         this.bancoSeleccionado = id;
-        this.ataSeleccionado = ''; // Reset ATA
+        
+        // Persistencia
         localStorage.setItem('app_banco_actual', id);
         localStorage.setItem('app_vista', 'dashboard');
 
-        // 🚧 RESTRICTION: Only B787 is active for now
-        if (id !== 'b787') {
-            this.vistaActual = 'proximamente';
-            this.cargando = false;
-            return;
-        }
-        
-        // 2. Cargar Dependencias (NO BLOQUEANTE)
-        console.log('📊 Intentando cargar ATAs para banco:', id);
         try {
             await this.cargarAtas();
-        } catch (error) {
-            console.error('⚠️ Error no bloqueante cargando ATAs:', error);
-        }
+        } catch (e) { console.error(e); }
+
+        // AQUÍ ESTÁ LA CLAVE: Asignación directa sin condiciones
+        this.vistaActual = 'dashboard'; 
         
-        // 3. 🆕 BATCH: Navegamos al dashboard SIEMPRE (Logic Fix)
-        this.vistaActual = 'dashboard';
         this.cargando = false;
-        console.log('✅ Dashboard listo. Usuario puede elegir modo de estudio.');
+        console.log("✅ Vista actual es ahora:", this.vistaActual);
     },
 
         cambiarBanco() {
