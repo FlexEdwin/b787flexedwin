@@ -90,13 +90,25 @@ function app() {
                     await this.cargarAtas();
                     await this.cargarBancos();
                     
-                    // Restaurar banco si existe
-                    const bancoGuardado = localStorage.getItem('b787_banco_actual');
-                    if (bancoGuardado) {
+                    // Restaurar sesión persistente
+                    const bancoGuardado = localStorage.getItem('app_banco_actual');
+                    const vistaGuardada = localStorage.getItem('app_vista');
+                    
+                    if (bancoGuardado && this.session) {
+                        console.log("♻️ Restaurando sesión anterior...");
+                        await this.cargarBancos(); // Asegura que existan los bancos primero
                         this.bancoSeleccionado = bancoGuardado;
-                        this.vistaActual = 'dashboard';
+                        await this.cargarAtas(); // Carga dependencias
+                        
+                        // Solo restaurar si no estábamos en medio de un quiz (para evitar estados rotos)
+                        if (vistaGuardada === 'dashboard') {
+                            this.vistaActual = 'dashboard';
+                        } else {
+                            this.vistaActual = 'inicio'; // Por seguridad si era quiz
+                        }
                     } else {
-                        this.vistaActual = 'inicio';
+                        // Lógica normal de inicio
+                        await this.cargarBancos();
                     }
                 } catch (e) {
                     console.error("Error cargando datos iniciales:", e);
@@ -213,7 +225,9 @@ async cargarAtas() {
             await sb.auth.signOut();
             this.auth.user = null;
             localStorage.removeItem('b787_sesion');
-            localStorage.removeItem('b787_banco_actual');
+            localStorage.removeItem('b787_sesion');
+            localStorage.removeItem('app_banco_actual');
+            localStorage.removeItem('app_vista');
             this.vistaActual = 'login';
         },
 
@@ -257,7 +271,8 @@ async cargarAtas() {
         // 1. Actualizar Estado
         this.bancoSeleccionado = id;
         this.ataSeleccionado = ''; // Reset ATA
-        localStorage.setItem('b787_banco_actual', id);
+        localStorage.setItem('app_banco_actual', id);
+        localStorage.setItem('app_vista', 'dashboard');
 
         // 🚧 RESTRICTION: Only B787 is active for now
         if (id !== 'b787') {
@@ -283,6 +298,8 @@ async cargarAtas() {
         cambiarBanco() {
             this.vistaActual = 'inicio';
             this.ataSeleccionado = '';
+            localStorage.removeItem('app_banco_actual');
+            localStorage.removeItem('app_vista');
         },
 
 // 🆕 BATCH: Nueva función para iniciar quiz con configuración
@@ -460,7 +477,7 @@ volverAlDashboard() {
                 const uid = this.auth.user?.id;
                 
                 // Intentamos guardar, pero si falla no detenemos el quiz
-                await sb.rpc('guardar_respuesta', {
+                await sb.rpc('guardar_intento', {
                     p_pregunta_id: this.preguntaActual.id,
                     p_es_correcta: esCorrecta,
                     p_banco_id: this.bancoSeleccionado || 'b787',

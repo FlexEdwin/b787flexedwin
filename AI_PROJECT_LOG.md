@@ -200,3 +200,29 @@ Se cerró el ciclo de desarrollo con un sprint intensivo de corrección de error
   - Si NO ES `b787` -> Navega a nueva vista `proximamente` (estado soft-lock).
 - **Vista 'Próximamente' (`index.html`):** Nueva sección con diseño "Under Construction", icono 🚧 y botón para volver al inicio.
 - **Tipografía (`index.html`):** Añadido `.toUpperCase()` al renderizado de `banco.slug` para forzar "B787".
+
+---
+
+### [2025-12-18] - Bug Hunting: Error 404 & Session Persistence 🐞
+
+**CORRECCIONES APLICADAS:**
+
+- ✅ **FIX RPC (Error 404):**
+
+  - Renombrada llamada RPC de `guardar_respuesta` a `guardar_intento` en `app.js` (función `responder`).
+  - Esto soluciona el error 404 al intentar guardar progreso.
+
+- ✅ **PERSISTENCIA DE SESIÓN (Cambio de Pestaña):**
+
+  - Implementado guardado local de `app_banco_actual` y `app_vista` en `seleccionarBanco`.
+  - Modificado `initApp()` para restaurar automáticamente la sesión (Banco + Vista) si existe.
+  - Esto evita que la app se reinicie al "Inicio" al recargar o cambiar de pestaña.
+
+- ✅ **LIMPIEZA DE SESIÓN:**
+  - Asegurada limpieza de `app_banco_actual` y `app_vista` al cerrar sesión o cambiar de banco manualmente.
+  - Garantiza que el botón "Volver a Inicio" realmente reinicie el flujo.
+
+**RESULTADO:**
+
+- Experiencia de usuario más robusta y tolerante a fallos de red o recargas accidentales.
+- Eliminados errores de consola por RPC inexistente.
