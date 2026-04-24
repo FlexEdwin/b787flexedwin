@@ -101,11 +101,12 @@ function app() {
                         this.bancoSeleccionado = bancoGuardado;
                         await this.cargarAtas(); // Carga dependencias
                         
-                        // Solo restaurar si no estábamos en medio de un quiz (para evitar estados rotos)
                         if (vistaGuardada === 'dashboard') {
                             this.vistaActual = 'dashboard';
+                        } else if (vistaGuardada === 'quiz') {
+                            this.recuperarSesion();
                         } else {
-                            this.vistaActual = 'inicio'; // Por seguridad si era quiz
+                            this.vistaActual = 'inicio';
                         }
                     } else {
                         // Lógica normal de inicio
@@ -121,16 +122,42 @@ function app() {
                 this.vistaActual = 'login';
             }
             
-            // Escuchar cambios de auth (Logout/Login)
+            // Escuchar cambios de auth (Logout/Login/Token Refresh)
             sb.auth.onAuthStateChange(async (event, session) => {
                 console.log("🔄 Auth Change:", event);
+
                 if (event === 'SIGNED_IN' && session) {
+                    // ✅ FIX v1.2: Distinguir login real de refresco de token.
+                    // Si el usuario YA estaba autenticado (auth.user existe),
+                    // este SIGNED_IN es un refresco automático del JWT → NO redirigir.
+                    const esLoginReal = !this.auth.user;
+
+                    // Siempre actualizar la sesión en memoria para que los RPCs
+                    // sigan funcionando con el token renovado.
                     this.auth.user = session.user;
-                    this.vistaActual = 'inicio';
-                    await this.cargarBancos();
-                    await this.cargarAtas();
+                    this.session = session; // ← clave: mantener sesión actualizada
+
+                    if (esLoginReal) {
+                        // Login genuino: navegar a inicio y cargar datos
+                        console.log("✅ Login real detectado → navegando a inicio.");
+                        this.vistaActual = 'inicio';
+                        await this.cargarBancos();
+                        await this.cargarAtas();
+                    } else {
+                        // Refresco de token silencioso: NO interrumpir al usuario
+                        console.log("🔄 Token renovado silenciosamente — sesión preservada, no se redirige.");
+                    }
+
+                } else if (event === 'TOKEN_REFRESHED' && session) {
+                    // Supabase también dispara TOKEN_REFRESHED en algunos flujos.
+                    // Solo actualizar la sesión en memoria, nunca redirigir.
+                    this.auth.user = session.user;
+                    this.session = session;
+                    console.log("🔄 TOKEN_REFRESHED → sesión actualizada silenciosamente.");
+
                 } else if (event === 'SIGNED_OUT') {
                     this.auth.user = null;
+                    this.session = null;
                     this.vistaActual = 'login';
                 }
             });
@@ -334,16 +361,27 @@ volverAlDashboard() {
         recuperarSesion() {
             try {
                 const saved = JSON.parse(localStorage.getItem('b787_sesion'));
-                if (saved) {
+                if (saved && saved.preguntas && saved.preguntas.length > 0) {
                     this.preguntas = saved.preguntas;
-                    this.indiceActual = saved.indiceActual;
-                    this.stats = saved.stats;
-                    this.modo = saved.modo;
-                    // Recuperar el orden de opciones guardado o generar uno nuevo si no existe (retrocompatibilidad)
-                    this.ordenOpciones = saved.ordenOpciones || this.mezclarOpciones(true); 
+                    this.indiceActual = saved.indiceActual || 0;
+                    this.stats = saved.stats || { correctas: 0, incorrectas: 0, racha: 0 };
+                    this.modo = saved.modo || 'general';
+                    
+                    if (saved.opcionesActuales) {
+                        this.opcionesActuales = saved.opcionesActuales;
+                    } else {
+                        // Retrocompatibilidad para sesiones antiguas
+                        this.ordenOpciones = saved.ordenOpciones || ['A','B','C','D'];
+                        this.mezclarOpciones();
+                    }
                     this.vistaActual = 'quiz';
+                } else {
+                    this.vistaActual = 'inicio'; // Fallback si no hay preguntas válidas
                 }
-            } catch (e) { localStorage.removeItem('b787_sesion'); }
+            } catch (e) { 
+                localStorage.removeItem('b787_sesion'); 
+                this.vistaActual = 'inicio'; 
+            }
         },
 
         async cargarPreguntas(entrada) {
@@ -560,7 +598,8 @@ volverAlDashboard() {
                 indiceActual: this.indiceActual,
                 stats: this.stats,
                 modo: this.modo,
-                ordenOpciones: this.ordenOpciones // Guardamos el orden actual
+                ordenOpciones: this.ordenOpciones, // Guardamos el orden actual (retrocompatibilidad)
+                opcionesActuales: this.opcionesActuales // Guardamos opciones mezcladas
             }));
         },
 

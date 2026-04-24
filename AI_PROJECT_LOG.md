@@ -2,9 +2,10 @@
 
 ## Estado Actual
 
-- **Progreso:** ~20% completado.
-- **Funcionalidad:** Login, Quiz básico B787, Gráficas.
-- **Pendiente Crítico:** Arquitectura Multi-Banco (Inglés/AMOS) y refactorización de código.
+- **Versión:** v1.2 (Estable)
+- **Progreso:** ~85% completado.
+- **Funcionalidad:** Login completo, Multi-Banco (B787/Inglés/AMOS), Quiz por lotes de 50 preguntas, Dashboard, Gráficas, Modo Repaso.
+- **Deuda Técnica:** Service Worker desincronizado con CDNs reales.
 
 ---
 
@@ -253,3 +254,21 @@ Se cerró el ciclo de desarrollo con un sprint intensivo de corrección de error
   - Eliminada cualquier lógica condicional que desviara a la vista `proximamente`.
   - Reescrita función `seleccionarBanco` para forzar explícitamente `this.vistaActual = 'dashboard'`.
   - Asegurada persistencia de la vista correcta en `localStorage`.
+
+---
+
+### [2026-04-24] - Fix Crítico: Recuperación de Sesión y Feedback Visual 🛡️
+
+**BUGS CORREGIDOS:**
+
+- ✅ **FIX CRÍTICO (Session Drop al suspender pestaña):**
+  - **Problema:** Si el usuario dejaba la app en segundo plano por mucho tiempo, el SO suspendía la pestaña. Al volver, la app se recargaba y `initApp()` expulsaba intencionalmente al usuario al inicio (`vistaActual = 'inicio'`) para "evitar estados rotos", perdiendo el progreso actual del quiz.
+  - **Solución:** Se habilitó `this.recuperarSesion()` en `initApp()` cuando `vistaGuardada === 'quiz'`. La app ahora detecta que estabas en medio de un test y te devuelve exactamente a la pregunta en la que ibas sin interrumpir el flujo.
+
+- ✅ **FIX LÓGICO (Opciones no guardadas):**
+  - **Problema:** La función `recuperarSesion` estaba deshabilitada porque no funcionaba bien. El problema era que `guardarEstadoLocal` no estaba guardando `this.opcionesActuales` (el orden barajado de A,B,C,D). Al restaurar, las opciones quedaban vacías y la UI se rompía.
+  - **Solución:** Se actualizó `guardarEstadoLocal` para serializar `opcionesActuales` en el `localStorage` y `recuperarSesion` para restaurarlas correctamente.
+
+- ✅ **MEJORA UX (Feedback Visual de Carga):**
+  - **Problema:** Si la red estaba inestable y el usuario era expulsado al menú de inicio, al hacer clic en un banco (`seleccionarBanco`) la app se quedaba esperando la respuesta de Supabase sin mostrar ningún indicador visual de carga ("parecía que el botón no hacía nada").
+  - **Solución:** Se implementó un *overlay* visual (`x-show="cargando && bancoSeleccionado === banco.id"`) con un *spinner* ("Conectando...") sobre la tarjeta del banco seleccionado en `index.html`. Ahora el usuario sabe instantáneamente que la app está procesando su petición, incluso si el internet es lento.

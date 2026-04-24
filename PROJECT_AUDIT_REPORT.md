@@ -87,7 +87,27 @@ Se han resuelto los puntos críticos de bloqueo (navegación, validación, persi
 
 ---
 
-## 4. Conclusión del Auditor
+## 4. Conclusión del Auditor (Diciembre 2025)
 
 El proyecto está técnicamente **APROBADO** para la fase actual (Beta/v1.0 Candidate).
 La única deuda técnica real es la configuración del **Service Worker**, que actualmente está desincronizada de la implementación real. Fuera de eso, el código es limpio, predecible y mantiene buena separación de intereses.
+
+---
+
+## 5. Revisión de Arquitectura de Sesión (Abril 2026)
+
+**Fecha:** 2026-04-24
+**Motivo:** Resolución de bug crítico de pérdida de sesión en móviles ("Timeout al demorar en responder").
+
+### 5.1. Análisis del Bug ("La Expulsión")
+Se determinó que la pérdida de la sesión de preguntas (Quiz) no era causada por Supabase, sino por el ciclo de vida del navegador (principalmente en dispositivos móviles). 
+- Al suspenderse la pestaña por inactividad y recargarse al volver, la aplicación detectaba un estado de "quiz en progreso".
+- Una medida preventiva obsoleta en `initApp()` expulsaba intencionalmente al usuario al Menú Principal (`vistaActual = 'inicio'`) para "evitar estados rotos", perdiendo todo el progreso de la sesión actual (las 50 preguntas).
+
+### 5.2. Resolución e Implementación
+1. **Restauración de Estado Completada:** Se habilitó el auto-resumido del quiz. `app.js` ahora serializa el estado completo del quiz (incluyendo el orden barajado de las opciones en `opcionesActuales`).
+2. **Ciclo de Vida Continuo:** Si la pestaña se recarga a la mitad de una prueba, el usuario es devuelto a la misma pregunta en la que estaba, con los mismos aciertos/errores, eliminando la fricción de uso "on-the-go".
+3. **Feedback de Red:** Se mitigó la sensación de "App congelada" (donde clics a bancos no respondían bajo mala conexión) añadiendo un overlay visual reactivo que bloquea el botón y muestra "Conectando..." mientras `cargarAtas()` espera respuesta del servidor.
+
+### 5.3. Recomendaciones Actualizadas
+El proyecto sigue mostrando excelente estabilidad bajo el paradigma "No-Build". Sin embargo, se recomienda encarecidamente priorizar la **actualización del Service Worker (`sw.js`)** para que cachee las peticiones de red y proteja al usuario contra micro-cortes de internet cuando viaja en transporte público.
