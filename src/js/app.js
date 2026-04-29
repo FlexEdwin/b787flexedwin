@@ -76,30 +76,25 @@ function app() {
 
         // --- CICLO DE VIDA ---
         async initApp() {
-            console.log("� Iniciando App...");
             this.checkLocalStorage();
 
             // 1. Verificar Sesión
             const { data: { session } } = await sb.auth.getSession();
             
             if (session) {
-                console.log("✅ Usuario detectado. Cargando datos...");
-                this.session = session; // 🆕 SESSION FIX
-                this.auth.user = session.user; // Redundancia
-                this.cargando = true; // Show spinner while loading initial data
+                this.session = session;
+                this.auth.user = session.user;
+                this.cargando = true;
                 try {
-                    await this.cargarAtas();
-                    await this.cargarBancos();
+                    // ✅ Carga única: evitar llamadas redundantes
+                    await Promise.all([this.cargarAtas(), this.cargarBancos()]);
                     
-                    // Restaurar sesión persistente
+                    // Restaurar sesión persistente si aplica
                     const bancoGuardado = localStorage.getItem('app_banco_actual');
                     const vistaGuardada = localStorage.getItem('app_vista');
                     
-                    if (bancoGuardado && this.session) {
-                        console.log("♻️ Restaurando sesión anterior...");
-                        await this.cargarBancos(); // Asegura que existan los bancos primero
+                    if (bancoGuardado) {
                         this.bancoSeleccionado = bancoGuardado;
-                        await this.cargarAtas(); // Carga dependencias
                         
                         if (vistaGuardada === 'dashboard') {
                             this.vistaActual = 'dashboard';
@@ -109,55 +104,51 @@ function app() {
                             this.vistaActual = 'inicio';
                         }
                     } else {
-                        // Lógica normal de inicio
-                        await this.cargarBancos();
+                        this.vistaActual = 'inicio';
                     }
                 } catch (e) {
-                    console.error("Error cargando datos iniciales:", e);
+                    console.error('Error cargando datos iniciales:', e);
+                    this.vistaActual = 'inicio';
                 } finally {
                     this.cargando = false;
                 }
             } else {
-                console.log("👻 Usuario anónimo o no logueado");
                 this.vistaActual = 'login';
             }
-            
+
+            // ✅ FIX F5: Watcher reactivo de seguridad.
+            // Si por cualquier motivo el usuario llega a 'inicio' con listaBancos vacío
+            // (race condition de auth asíncrona, fallo de red, etc.), recarga automáticamente.
+            this.$watch('vistaActual', async (val) => {
+                if (val === 'inicio' && this.listaBancos.length === 0 && !this.cargando) {
+                    await this.cargarBancos();
+                }
+            });
+
             // Escuchar cambios de auth (Logout/Login/Token Refresh)
             sb.auth.onAuthStateChange(async (event, session) => {
-                console.log("🔄 Auth Change:", event);
-
                 if (event === 'SIGNED_IN' && session) {
-                    // ✅ FIX v1.2: Distinguir login real de refresco de token.
-                    // Si el usuario YA estaba autenticado (auth.user existe),
-                    // este SIGNED_IN es un refresco automático del JWT → NO redirigir.
+                    // Distinguir login real de refresco silencioso del JWT.
                     const esLoginReal = !this.auth.user;
-
-                    // Siempre actualizar la sesión en memoria para que los RPCs
-                    // sigan funcionando con el token renovado.
                     this.auth.user = session.user;
-                    this.session = session; // ← clave: mantener sesión actualizada
+                    this.session   = session;
 
                     if (esLoginReal) {
-                        // Login genuino: navegar a inicio y cargar datos
-                        console.log("✅ Login real detectado → navegando a inicio.");
+                        // Login genuino desde pantalla de login → cargar y navegar.
                         this.vistaActual = 'inicio';
-                        await this.cargarBancos();
-                        await this.cargarAtas();
-                    } else {
-                        // Refresco de token silencioso: NO interrumpir al usuario
-                        console.log("🔄 Token renovado silenciosamente — sesión preservada, no se redirige.");
+                        await Promise.all([this.cargarBancos(), this.cargarAtas()]);
                     }
+                    // Si NO es login real (refresco de token) → $watch cubre el caso
+                    // donde listaBancos pudiera estar vacío.
 
                 } else if (event === 'TOKEN_REFRESHED' && session) {
-                    // Supabase también dispara TOKEN_REFRESHED en algunos flujos.
-                    // Solo actualizar la sesión en memoria, nunca redirigir.
+                    // Sólo actualizar token en memoria, sin redirigir.
                     this.auth.user = session.user;
-                    this.session = session;
-                    console.log("🔄 TOKEN_REFRESHED → sesión actualizada silenciosamente.");
+                    this.session   = session;
 
                 } else if (event === 'SIGNED_OUT') {
                     this.auth.user = null;
-                    this.session = null;
+                    this.session   = null;
                     this.vistaActual = 'login';
                 }
             });
@@ -252,10 +243,10 @@ async cargarAtas() {
         async logout() {
             await sb.auth.signOut();
             this.auth.user = null;
-            localStorage.removeItem('b787_sesion');
-            localStorage.removeItem('b787_sesion');
-            localStorage.removeItem('app_banco_actual');
-            localStorage.removeItem('app_vista');
+            this.session = null;
+            this.bancoSeleccionado = null;
+            this.preguntas = [];
+            ['b787_sesion', 'app_banco_actual', 'app_vista'].forEach(k => localStorage.removeItem(k));
             this.vistaActual = 'login';
         },
 
@@ -415,26 +406,23 @@ volverAlDashboard() {
 
                 // 🎯 DOBLE VALIDACIÓN: Bifurcación por Modo de Estudio
         if (this.modoEstudio === 'repaso') {
-            // CASO 1: Modo Repaso - Usar obtener_repaso
             rpcName = 'obtener_repaso';
             params = { 
                 p_banco_id: this.bancoSeleccionado,
-                cantidad: 50 // 🆕 BATCH: 50 preguntas por lote
+                cantidad: 25
             };
         } else {
-            // CASO 2: Modo General - Usar obtener_general
             rpcName = 'obtener_general';
             params = { 
                 p_banco_id: this.bancoSeleccionado,
-                p_ata_id: null, // Can be set for ATA filtering
-                cantidad: 50 // 🆕 BATCH: 50 preguntas por lote
+                p_ata_id: null,
+                cantidad: 25
             };
-
-                    // Si el usuario seleccionó un ATA específico
-                    if (this.modo === 'ata') {
-                        params.p_ata_id = parseInt(entrada);
-                    }
-                }
+            // Si el usuario seleccionó un ATA específico
+            if (this.modo === 'ata') {
+                params.p_ata_id = parseInt(entrada);
+            }
+        }
 
                 console.log('📡 Enviando a RPC:', rpcName);
                 console.log('📦 Parámetros:', JSON.stringify(params, null, 2));
@@ -487,6 +475,12 @@ volverAlDashboard() {
             if (this.bloqueado) return;
             this.bloqueado = true;
             this.seleccionada = letra;
+
+            // ✅ FIX MÓVIL: Liberar el foco del botón pulsado para evitar highlight residual
+            // en la siguiente pregunta cuando la misma letra aparece en la misma posición.
+            if (document.activeElement && document.activeElement.blur) {
+                document.activeElement.blur();
+            }
 
             // 1. NORMALIZACIÓN Y DIAGNÓSTICO
             const seleccion = String(letra).trim().toUpperCase();
@@ -669,14 +663,6 @@ volverAlDashboard() {
         showToast(msg, tipo) {
             this.toast = { visible: true, mensaje: msg, tipo };
             setTimeout(() => this.toast.visible = false, 3000);
-        },
-
-        obtenerTextoOpcion(letraVisual) {
-            if (!this.preguntaActual) return '';
-            // Traducir Visual -> Real
-            const indiceVisual = ['A', 'B', 'C', 'D'].indexOf(letraVisual);
-            const letraReal = this.ordenOpciones[indiceVisual];
-            return this.preguntaActual['opcion_' + letraReal.toLowerCase()];
         },
 
         // --- CSS Logic moved to HTML :class directives ---

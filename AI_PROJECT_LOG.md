@@ -2,10 +2,58 @@
 
 ## Estado Actual
 
-- **Versión:** v1.2 (Estable)
-- **Progreso:** ~85% completado.
-- **Funcionalidad:** Login completo, Multi-Banco (B787/Inglés/AMOS), Quiz por lotes de 50 preguntas, Dashboard, Gráficas, Modo Repaso.
-- **Deuda Técnica:** Service Worker desincronizado con CDNs reales.
+- **Versión:** v1.3.1 (Estable)
+- **Progreso:** ~90% completado.
+- **Funcionalidad:** Login completo, Multi-Banco (B787/Inglés/AMOS), Quiz por lotes de **25 preguntas**, Dashboard, Gráficas, Modo Repaso, PWA funcional.
+- **Deuda Técnica:** Ninguna crítica.
+
+---
+
+### [2026-04-29] - Fix Bug F5: Bancos no aparecen al refrescar 🔄
+
+**PROBLEMA REPORTADO:**
+Al estar en la pantalla "Selecciona tu Banco de Estudio" y presionar F5/refrescar, no aparecía ningún banco. Había que hacer clic en el logo "Proyecto B787" para que volvieran a mostrarse.
+
+**CAUSA RAÍZ:**
+Race condition en el flujo de autenticación asíncrona de Supabase. En ciertos escenarios (red lenta, sesión que necesita refresco de token), `onAuthStateChange` puede disparar `SIGNED_IN` después de que `initApp()` ya configuró la vista. Si en ese momento `listaBancos` está vacío, no había ningún mecanismo para reintentarlo.
+
+**SOLUCIÓN:**
+- ✅ Añadido `this.$watch('vistaActual', ...)` en `initApp()`. Detecta reactivamente cuando el usuario llega a la vista `'inicio'` con `listaBancos.length === 0` y ejecuta `cargarBancos()` automáticamente.
+- ✅ Simplificado `onAuthStateChange`: login genuino ahora usa `Promise.all([cargarBancos(), cargarAtas()])` en paralelo.
+- ✅ Eliminados `console.log` de debug del listener de auth.
+
+---
+
+### [2026-04-29] - Auditoría Técnica Completa + Bug Fix Móvil 🔎🐛
+
+**PROBLEMA REPORTADO:**
+
+1. En móvil, al responder una opción (ej: letra "A" en posición 3), si la siguiente pregunta también tiene la letra "A" en la misma posición visual, el botón aparece con borde resaltado como si ya hubiera sido seleccionado.
+2. Muchas veces no se podían terminar las 50 preguntas antes de cerrar el navegador, lo que obligaba a empezar un lote nuevo.
+
+**BUGS CORREGIDOS:**
+
+- ✅ **FIX CRÍTICO (Highlight residual en móvil):**
+  - **Causa raíz:** En móvil, al hacer `touch` en un botón, el navegador le asigna el estado `:focus`. Como Alpine reutiliza los nodos del DOM al re-renderizar con el mismo `:key`, el nodo del botón conserva el `:focus` visual de la pregunta anterior.
+  - **Solución triple aplicada:**
+    1. `document.activeElement.blur()` en `responder()` al inicio de cada respuesta, limpiando el foco programáticamente.
+    2. `@touchend="$el.blur()"` en el botón HTML para limpiar el foco inmediatamente al levantar el dedo.
+    3. `outline-none focus:outline-none focus-visible:outline-none` + `button { -webkit-tap-highlight-color: transparent; }` en CSS para eliminar cualquier outline del navegador.
+
+- ✅ **REDUCCIÓN DE LOTE (50 → 25 preguntas):**
+  - Reducido `cantidad: 50` a `cantidad: 25` en las RPCs `obtener_general` y `obtener_repaso`.
+  - Actualizado texto en dashboard de "50 preguntas aleatorias" a "25 preguntas aleatorias".
+  - El estado se guarda en localStorage, permitiendo retomar la sesión si el navegador se cierra.
+
+**DEUDA TÉCNICA ELIMINADA:**
+
+- ✅ **`initApp()` optimizado:** Se eliminaron 3 llamadas redundantes a `cargarBancos()` y 2 a `cargarAtas()`. Ahora se usan en paralelo con `Promise.all()` una sola vez.
+- ✅ **`logout()` corregido:** Se eliminó la llamada `localStorage.removeItem('b787_sesion')` duplicada. Ahora limpia en un array con `forEach`.
+- ✅ **`obtenerTextoOpcion()` eliminada:** Función huérfana de la arquitectura anterior, nunca invocada.
+- ✅ **Service Worker sincronizado:** `sw.js` ahora cachea las URLs reales de CDN que usa `index.html`. Implementa Network-first para Supabase y Cache-first para assets.
+- ✅ **Alpine.js anclado a v3.14.1:** Prevenido posible breaking change por carga sin versión fija.
+- ✅ **Click en logo del header:** Al hacer click en "Proyecto B787" ahora limpia el localStorage de banco/vista antes de navegar a inicio.
+- ✅ **Meta tags SEO/PWA añadidos:** `description`, `theme-color`, `og:*`, `apple-mobile-web-app-capable`.
 
 ---
 
