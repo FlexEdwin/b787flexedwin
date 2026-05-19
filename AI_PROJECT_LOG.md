@@ -2,10 +2,46 @@
 
 ## Estado Actual
 
-- **Versión:** v1.3.1 (Estable)
-- **Progreso:** ~90% completado.
-- **Funcionalidad:** Login completo, Multi-Banco (B787/Inglés/AMOS), Quiz por lotes de **25 preguntas**, Dashboard, Gráficas, Modo Repaso, PWA funcional.
+- **Versión:** v1.4 (Estable)
+- **Progreso:** ~95% completado.
+- **Funcionalidad:** Login completo, Multi-Banco (B787/Inglés/AMOS), Quiz por lotes de **25 preguntas**, Dashboard adaptativo, Gráficas, Modo Repaso, PWA funcional.
 - **Deuda Técnica:** Ninguna crítica.
+
+---
+
+### [2026-05-19] - Activación Banco de Inglés + Filtrado ATAs por Banco 🇬🇧
+
+**REQUERIMIENTO:**
+Activar el banco de Inglés Técnico (`banco_id: e434771e-36ed-4a07-b4d3-85c213b19b1e`, slug: `ingles`) reutilizando el motor de tests del B787. Las categorías del inglés están en la tabla `atas` (IDs 17-28). En la UI no debe decir "ATA/Capítulos" sino "Temas" cuando el usuario esté en este banco.
+
+**IMPLEMENTACIÓN:**
+
+- ✅ **`cargarAtas(bancoId)` refactorizada** (`app.js`):  
+  Ahora acepta un `bancoId` opcional y aplica `.eq('banco_id', idFiltro)` antes de ejecutar el query.  
+  Cada banco verá exclusivamente sus propias filas de `atas`, evitando mezcla entre B787/Inglés/AMOS.  
+  Si no se recibe `bancoId`, usa `this.bancoSeleccionado` como fallback (compatibilidad hacia atrás).
+
+- ✅ **`seleccionarBanco(id)` actualizada** (`app.js`):  
+  Ahora pasa `id` explícitamente a `cargarAtas(id)` para evitar condiciones de carrera donde el estado reactivo `bancoSeleccionado` aún no se haya propagado al momento de ejecutar la query.
+
+- ✅ **Getter `esIngles` añadido** (`app.js`):  
+  Computed property que detecta si el banco activo tiene `slug === 'ingles'`.  
+  Usado en la UI para renderizar condicionalmente los labels correctos sin duplicar lógica.
+
+- ✅ **UI adaptativa en Dashboard** (`index.html`):  
+  - Título de tarjeta: `x-text="esIngles ? 'Por Temas' : 'Por Capítulos'"`  
+  - Placeholder select: `x-text="esIngles ? 'Seleccionar Tema...' : 'Seleccionar Capítulo...'"` 
+  - Botón: `x-text="esIngles ? 'Estudiar Tema' : 'Estudiar Capítulo'"`  
+  Todo condicionado al getter `esIngles`. Sin hardcoding de IDs o slugs en el HTML.
+
+**RESULTADO:**
+- El banco de Inglés ya está operativo: usa las mismas RPCs (`obtener_general`, `obtener_repaso`, `guardar_intento`) con su `banco_id` propio.
+- La UI se adapta automáticamente al vocabulario correcto según el banco seleccionado.
+- Para activar futuros bancos (AMOS, etc.) solo se necesita agregar datos en Supabase, sin cambios de código.
+
+**PRECONDICIÓN DE BD:**
+- La tabla `atas` debe tener columna `banco_id` (UUID, FK hacia `bancos.id`) para el filtrado.
+- Las filas de inglés (IDs 17-28) deben tener `banco_id = 'e434771e-36ed-4a07-b4d3-85c213b19b1e'`.
 
 ---
 

@@ -49,6 +49,12 @@ function app() {
             const modoDisplay = this.modoEstudio === 'repaso' ? ' (Repaso)' : ' (General)';
             return (map[this.modo] || 'Estudio') + modoDisplay;
         },
+        // 🆕 INGLÉS: Detecta si el banco activo es el banco de inglés (slug: 'ingles')
+        // Usado en la UI para cambiar 'ATA/Capítulos' → 'Temas'
+        get esIngles() {
+            const banco = this.listaBancos.find(b => b.id === this.bancoSeleccionado);
+            return banco?.slug === 'ingles';
+        },
         get progresoLote() {// 🆕 BATCH: Progreso del lote actual
             if (!this.preguntas.length) return 'Sin preguntas';
             return `Pregunta ${this.indiceActual + 1} de ${this.preguntas.length}`;
@@ -155,9 +161,21 @@ function app() {
         },
 
         // --- GESTIÓN DE DATOS ---
-async cargarAtas() {
+// 🆕 MULTI-BANCO: Filtra ATAs por el banco_id activo.
+// Cada banco (B787, Inglés, AMOS) tiene sus propias filas en la tabla `atas`.
+// La columna `banco_id` en `atas` permite este filtrado sin lógica extra.
+async cargarAtas(bancoId = null) {
+    // Usamos el bancoId recibido o el que ya está en el estado
+    const idFiltro = bancoId || this.bancoSeleccionado;
     try {
-        const { data, error } = await sb.from('atas').select('id, nombre').order('id');
+        let query = sb.from('atas').select('id, nombre').order('id');
+        
+        // Si hay un banco activo, filtrar solo sus ATAs/Temas
+        if (idFiltro) {
+            query = query.eq('banco_id', idFiltro);
+        }
+        
+        const { data, error } = await query;
         
         if (error) {
             console.error('⚠️ Error cargando ATAs:', error);
@@ -168,7 +186,7 @@ async cargarAtas() {
         // 🛡️ Protección contra data null/undefined
         if (data && Array.isArray(data)) {
             this.atas = data;
-            console.log('✅ ATAs cargados:', data.length);
+            console.log('✅ ATAs/Temas cargados:', data.length, '| Banco ID:', idFiltro);
         } else {
             this.atas = [];
             console.warn('⚠️ No se recibieron ATAs del backend');
@@ -293,7 +311,9 @@ async cargarAtas() {
         localStorage.setItem('app_vista', 'dashboard');
 
         try {
-            await this.cargarAtas();
+            // 🆕 MULTI-BANCO: Pasamos el id directamente para no depender
+            // de que this.bancoSeleccionado ya esté actualizado en el estado reactivo
+            await this.cargarAtas(id);
         } catch (e) { console.error(e); }
 
         // AQUÍ ESTÁ LA CLAVE: Asignación directa sin condiciones
