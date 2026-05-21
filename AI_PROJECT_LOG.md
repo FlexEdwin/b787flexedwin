@@ -5,7 +5,50 @@
 - **Versión:** v1.4 (Estable)
 - **Progreso:** ~95% completado.
 - **Funcionalidad:** Login completo, Multi-Banco (B787/Inglés/AMOS), Quiz por lotes de **25 preguntas**, Dashboard adaptativo, Gráficas, Modo Repaso, PWA funcional.
-- **Deuda Técnica:** Ninguna crítica.
+- **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-05-20] - Auditoría de Sistema de Doble Validación 🔬
+
+**REQUERIMIENTO:**
+Verificar que el sistema de 25 preguntas aleatorias funciona correctamente y que las preguntas ya dominadas (respondidas correctamente 2 veces seguidas en modo general) efectivamente dejan de aparecer. Confirmar si el progreso es por usuario (credenciales) o por dispositivo.
+
+**DIAGNÓSTICO EJECUTADO:**
+
+- ✅ **Frontend (`app.js`) inocente:** El código simplemente llama a la RPC `obtener_general` con `cantidad: 25`. No hay lógica de filtrado en el cliente; toda la responsabilidad recae en el backend.
+- ✅ **RPCs revisadas y correctas:** Se auditó el código fuente de `obtener_general`, `obtener_repaso` y `guardar_intento` directamente en Supabase. La lógica de "Doble Validación" (excluir preguntas con ≥ 2 aciertos consecutivos en modo `general`) está correctamente implementada en SQL.
+- ✅ **Datos guardándose:** Se confirmó con query directo a la tabla `respuestas` que los intentos del usuario se están registrando correctamente (133 respuestas en general, 60 en repaso para el usuario principal).
+- ✅ **Sin doble registro:** No se detectaron respuestas duplicadas (misma pregunta guardada dos veces en el mismo segundo).
+- ✅ **305 preguntas ya dominadas:** El usuario principal (`dc5920a7...`) tiene 305 preguntas correctamente filtradas por el sistema. El algoritmo de doble validación está funcionando.
+- ⚠️ **10 preguntas con texto duplicado en BD:** Se detectaron 10 preguntas con el mismo `texto` pero distintos `id` en la tabla `preguntas`. Probablemente ocurrió al cargar el banco de Inglés. Si ambas copias comparten el mismo `banco_id`, la misma pregunta puede aparecer dos veces en un lote de 25 y el dominar una copia no elimina la otra. **Requiere verificación y limpieza por el administrador de BD.**
+
+**CONCLUSIÓN:**
+El sistema de doble validación funciona correctamente a nivel de código (frontend y backend). La sensación de "preguntas que se repiten" reportada por el usuario probablemente se debe a las preguntas duplicadas en la BD, no a un bug en la lógica.
+
+**ARQUITECTURA DE PROGRESO (Aclaración documentada):**
+
+| Dato | Dónde vive | ¿Va con el usuario? |
+|------|------------|---------------------|
+| Historial de aciertos/fallos | Supabase (`respuestas`) | ✅ Sí, cualquier dispositivo |
+| Lote activo de 25 preguntas (en curso) | `localStorage` del navegador | ❌ Solo ese dispositivo |
+| Banco/vista seleccionada | `localStorage` del navegador | ❌ Solo ese dispositivo |
+
+**USUARIOS ANÓNIMOS:**
+El progreso de usuarios anónimos SÍ se guarda en Supabase bajo un UUID único generado por `signInAnonymously()`. Sin embargo, ese UUID solo persiste mientras la sesión Supabase esté en el navegador (localStorage). Si el usuario borra cookies o cambia de dispositivo, pierde acceso a su cuenta anónima y su progreso queda huérfano en la BD.
+
+**ACCIÓN PENDIENTE (BD):**
+```sql
+-- Ejecutar para confirmar si los duplicados están en el mismo banco
+SELECT p.id, p.texto, b.nombre as banco, b.slug
+FROM preguntas p
+JOIN bancos b ON b.id = p.banco_id
+WHERE p.texto IN (
+    SELECT texto FROM preguntas GROUP BY texto HAVING COUNT(*) > 1
+)
+ORDER BY p.texto, b.slug;
+-- Si están en el mismo banco → eliminar duplicados con DELETE WHERE id = <id_duplicado>
+```
 
 ---
 
