@@ -49,8 +49,16 @@ function app() {
             const modoDisplay = this.modoEstudio === 'repaso' ? ' (Repaso)' : ' (General)';
             return (map[this.modo] || 'Estudio') + modoDisplay;
         },
-        // 🆕 INGLÉS: Detecta si el banco activo es el banco de inglés (slug: 'ingles')
-        // Usado en la UI para cambiar 'ATA/Capítulos' → 'Temas'
+        // 🆕 MULTI-BANCO: Retorna el vocabulario correcto de categoría según el banco activo.
+        // 'ingles' → 'Tema' | 'regulaciones' → 'Categoría' | default → 'Capítulo'
+        get labelCategoria() {
+            const banco = this.listaBancos.find(b => b.id === this.bancoSeleccionado);
+            const slug = banco?.slug || '';
+            if (slug === 'ingles') return 'Tema';
+            if (slug === 'regulaciones') return 'Categoría';
+            return 'Capítulo';
+        },
+        // Retrocompatibilidad: mantenemos esIngles para no romper nada pendiente
         get esIngles() {
             const banco = this.listaBancos.find(b => b.id === this.bancoSeleccionado);
             return banco?.slug === 'ingles';

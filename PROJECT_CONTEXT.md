@@ -119,7 +119,7 @@ Para soportar el algoritmo de Doble Validación, la tabla `respuestas` debe regi
 ### ✅ Features Completadas
 
 - **Autenticación**: Flujo completo (Login / Invitado / Logout) con UI dedicada.
-- **Multi-Banco**: Operativo para B787, Inglés y AMOS.
+- **Multi-Banco**: Operativo para B787, Inglés, AMOS y Regulaciones Aeronáuticas.
 - **Feedback Visual**: UI de alto contraste para Dark Mode (`bg-green-900`/`bg-red-900`).
 - **Adaptabilidad**: Dashboard se ajusta al contenido del banco (oculta ATAs si no existen).
 

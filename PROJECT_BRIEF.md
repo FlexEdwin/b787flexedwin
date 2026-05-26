@@ -18,11 +18,12 @@ Para considerar el proyecto "Terminado v1.0", la aplicación debe cumplir estric
 
 ### A. Soporte Multi-Banco (Crítico) ✅ **COMPLETADO**
 
-El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar tres bancos de preguntas independientes:
+El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múltiples bancos de preguntas independientes:
 
 1.  **B787**: Sistemas, ATAs, Procedimientos.
 2.  **Inglés Técnico**: Terminología aeronáutica.
 3.  **AMOS**: Uso del software de gestión de mantenimiento.
+4.  **Regulaciones Aeronáuticas**: Normativas RAC 145, SMS, Factores Humanos y EWIS.
 
 > **Estado:** ✅ Implementado. Bancos se cargan dinámicamente desde tabla `bancos` en Supabase. RPCs filtran preguntas por `p_banco_id`. UI proporciona feedback visual de selección.
 
@@ -76,5 +77,5 @@ Se requiere una migración para añadir la columna `banco_id` o `categoria` a la
 
 1.  ✅ Usuario se loguea (o entra como invitado) y ve bancos disponibles.
 2.  ✅ Navegación fluida (Dashboard -> Quiz) sin tiempos de carga por pregunta.
-3.  ✅ Validación correcta en B787, Inglés y AMOS.
+3.  ✅ Validación correcta en B787, Inglés, AMOS y Regulaciones Aeronáuticas.
 4.  ✅ Persistencia de datos y estadísticas fiables.

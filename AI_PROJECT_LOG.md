@@ -2,10 +2,44 @@
 
 ## Estado Actual
 
-- **Versión:** v1.4 (Estable)
-- **Progreso:** ~95% completado.
-- **Funcionalidad:** Login completo, Multi-Banco (B787/Inglés/AMOS), Quiz por lotes de **25 preguntas**, Dashboard adaptativo, Gráficas, Modo Repaso, PWA funcional.
+- **Versión:** v1.5 (Estable)
+- **Progreso:** ~97% completado.
+- **Funcionalidad:** Login completo, Multi-Banco (B787 / Inglés / AMOS / **Regulaciones Aeronáuticas**), Quiz por lotes de **25 preguntas**, Dashboard adaptativo, Gráficas, Modo Repaso, PWA funcional.
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-05-25] - Nuevo Banco: Regulaciones Aeronáuticas 📋
+
+**REQUERIMIENTO:**
+Agregar un cuarto banco de estudio llamado "Regulaciones Aeronáuticas" con 178 preguntas distribuidas en 4 categorías: SMS, Políticas, Regulaciones y Proeficiencia. Las preguntas fueron importadas directamente a Supabase vía CSV.
+
+**CONFIGURACIÓN EN BD (Solo Supabase, sin cambios de código):**
+- ✅ **Tabla `bancos`**: Registro insertado con `id: 97bcbf1e-1a72-44d2-8b42-a34ec0ae769c`, `slug: 'regulaciones'`.
+- ✅ **Tabla `atas`**: 4 categorías asignadas al banco:
+  - ATA 29 → `sms` (20 preguntas)
+  - ATA 30 → `politicas` (28 preguntas)
+  - ATA 31 → `regulaciones` (106 preguntas)
+  - ATA 32 → `proeficiencia` (24 preguntas)
+- ✅ **Tabla `preguntas`**: 178 preguntas con `banco_id` correcto, IDs iniciando desde 1566.
+
+**CAMBIOS DE CÓDIGO (Frontend):**
+
+- ✅ **Getter `labelCategoria` añadido** (`app.js`):  
+  Nuevo getter que retorna vocabulario dinámico según el `slug` del banco activo:  
+  `'ingles'` → `'Tema'` | `'regulaciones'` → `'Categoría'` | default → `'Capítulo'`  
+  El getter `esIngles` se mantuvo por retrocompatibilidad.
+
+- ✅ **UI Dashboard actualizada** (`index.html`):  
+  Los 3 textos del card de categorías ahora usan `labelCategoria`:  
+  - Título: `'Por ' + labelCategoria` → "Por Categoría" en Regulaciones  
+  - Placeholder select: `'Seleccionar ' + labelCategoria + '...'`  
+  - Botón: `'Estudiar ' + labelCategoria`  
+
+**RESULTADO:**
+- El banco "Regulaciones Aeronáuticas" aparece automáticamente en la pantalla de selección.
+- Las 4 categorías son seleccionables desde el Dashboard con el vocabulario correcto.
+- Cero código duplicado: el sistema escala añadiendo datos en Supabase.
 
 ---
 

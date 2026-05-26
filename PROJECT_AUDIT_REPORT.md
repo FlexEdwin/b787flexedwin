@@ -81,9 +81,9 @@ Se han resuelto los puntos críticos de bloqueo (navegación, validación, persi
 
 1. Crear carpeta `backups/` y mover los archivos `.backup` y `_professional.html`.
 
-### Prioridad C: Expansión (Futuro)
+### Prioridad C: Expansión (Completada)
 
-1. **Bancos AMOS/Inglés:** La infraestructura está lista (`seleccionarBanco` ya tiene el switch). Solo falta poblar la DB y quitar el bloqueo en el `if`.
+1. **Bancos B787, Inglés, AMOS y Regulaciones Aeronáuticas:** La infraestructura Multi-Banco está completamente operativa. Los bancos se cargan dinámicamente desde la base de datos sin necesidad de cambios en el código. El último banco agregado fue "Regulaciones Aeronáuticas" (178 preguntas).
 
 ---
 
@@ -158,6 +158,6 @@ El proyecto **B787 Escalafón v1.3** alcanza un nivel de calidad **PRODUCCIÓN R
 
 ### 6.3. Próximos Pasos Recomendados
 
-1. **Activar bancos Inglés y AMOS** — La infraestructura frontend ya está lista. Solo falta poblar la base de datos.
+1. **Mantenimiento de Contenido** — Los bancos B787, Inglés, AMOS y Regulaciones Aeronáuticas están activos. Continuar alimentando la base de datos según sea necesario.
 2. **Añadir `manifest.json` con `start_url` y `icons`** — Para instalación PWA completa en Android/iOS.
 3. **Limpiar archivos backup** — Mover `index_original_backup.html` e `index_professional.html` a `/_archive` o eliminar si Git está activo.
