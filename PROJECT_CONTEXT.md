@@ -71,7 +71,9 @@ Basado en las llamadas RPC y consultas `sb.from()` en `src/js/app.js`, este es e
     - `texto`: Enunciado de la pregunta.
     - `opcion_a`, `opcion_b`, `opcion_c`, `opcion_d`: Textos de las respuestas.
     - `correcta`: Char ('A', 'B', 'C', 'D') indicando la respuesta correcta.
+    - `image_url`: TEXT (opcional). Nombre de la imagen en Supabase Storage.
     - _(Probable)_ `ata_id`: FK hacia tabla `atas`.
+    - _(Probable)_ `banco_id`: FK hacia tabla `bancos`.
 
 3.  **`respuestas`** (Inferida por lógica de stats)
     - No consultada directamente, pero gestionada a través de RPCs para guardar historial de usuario, aciertos y fallos.
@@ -120,6 +122,7 @@ Para soportar el algoritmo de Doble Validación, la tabla `respuestas` debe regi
 
 - **Autenticación**: Flujo completo (Login / Invitado / Logout) con UI dedicada.
 - **Multi-Banco**: Operativo para B787, Inglés, AMOS y Regulaciones Aeronáuticas.
+- **Soporte de Imágenes**: Renderizado de imágenes de referencia en las preguntas (ej. AMOS) directamente desde el bucket público `preguntas-media` de Supabase Storage.
 - **Feedback Visual**: UI de alto contraste para Dark Mode (`bg-green-900`/`bg-red-900`).
 - **Adaptabilidad**: Dashboard se ajusta al contenido del banco (oculta ATAs si no existen).
 

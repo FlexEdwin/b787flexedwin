@@ -49,6 +49,12 @@ function app() {
             const modoDisplay = this.modoEstudio === 'repaso' ? ' (Repaso)' : ' (General)';
             return (map[this.modo] || 'Estudio') + modoDisplay;
         },
+        get urlImagenActiva() {
+            if (!this.preguntaActual || !this.preguntaActual.image_url) return null;
+            // Construimos la URL: [SupabaseURL]/storage/v1/object/public/[Bucket]/[NombreImagen]
+            const bucketName = 'preguntas-media'; 
+            return `${SUPABASE_URL}/storage/v1/object/public/${bucketName}/${this.preguntaActual.image_url}`;
+        },
         // 🆕 MULTI-BANCO: Retorna el vocabulario correcto de categoría según el banco activo.
         // 'ingles' → 'Tema' | 'regulaciones' → 'Categoría' | default → 'Capítulo'
         get labelCategoria() {

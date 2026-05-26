@@ -9,6 +9,28 @@
 
 ---
 
+### [2026-05-25] - Soporte de Imágenes y Banco AMOS 🖼️
+
+**REQUERIMIENTO:**
+Habilitar soporte para preguntas que requieran imágenes de referencia (ej. "según la imagen responda..."), específicamente para el banco de AMOS, utilizando Supabase Storage de manera profesional.
+
+**CONFIGURACIÓN EN BD (Supabase):**
+- ✅ **Tabla `preguntas`**: Agregada columna `image_url TEXT DEFAULT NULL` para guardar el nombre del archivo de la imagen.
+- ✅ **Supabase Storage**: Creado el bucket público `preguntas-media`. Las imágenes se subieron directamente a la raíz de este bucket (ej: `amos_55.png`).
+- ✅ **Políticas**: Cambiada la propiedad del bucket a `public: true` para habilitar el acceso público por URL sin tokens.
+- ✅ **Funciones RPC**: Verificado que `obtener_general` y `obtener_repaso` utilicen `p.*` (lo cual hereda automáticamente la columna `image_url` en el resultado).
+
+**CAMBIOS DE CÓDIGO (Frontend):**
+- ✅ **Lógica en JS (`app.js`)**:
+  Añadido el getter `urlImagenActiva` que detecta la presencia de `image_url` en la pregunta en pantalla y construye dinámicamente la URL pública de la imagen apuntando al bucket `preguntas-media` de Supabase.
+- ✅ **Interfaz de Usuario (`index.html`)**:
+  Se agregó una sección `<template x-if="urlImagenActiva">` con estilo Tailwind (`bg-slate-900/50`, bordes redondeados y centrado) justo debajo del texto de la pregunta para renderizar la imagen de referencia solo si es necesario.
+
+**RESULTADO:**
+Las preguntas con imágenes (ej: Pregunta 55 de AMOS) ahora muestran su gráfica o diagrama de referencia de forma adaptativa y fluida.
+
+---
+
 ### [2026-05-25] - Nuevo Banco: Regulaciones Aeronáuticas 📋
 
 **REQUERIMIENTO:**
