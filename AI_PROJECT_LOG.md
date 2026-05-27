@@ -9,6 +9,17 @@
 
 ---
 
+### [2026-05-27] - Soporte Múltiples Respuestas Válidas ✔️✔️
+
+**REQUERIMIENTO:**
+Permitir que una misma pregunta acepte múltiples letras como correctas (ej. Pregunta 46 del banco AMOS que tiene dos opciones válidas).
+
+**CAMBIOS DE CÓDIGO & BD:**
+- ✅ **Base de Datos**: Se instruyó modificar el tipo de columna `correcta` de `CHAR(1)` a `TEXT` o `VARCHAR` (`ALTER TABLE preguntas ALTER COLUMN correcta TYPE TEXT;`) para admitir valores como `A,B`.
+- ✅ **Frontend (`app.js` e `index.html`)**: Refactorizada la validación de `opcion.letra === preguntaActual.correcta` a `correcta.includes(seleccion)` permitiendo que cualquiera de las letras listadas en la BD valide como correcta y cambie a verde en la UI.
+- ✅ **Documentación**: Esquema en `PROJECT_CONTEXT.md` actualizado.
+
+---
 ### [2026-05-25] - Soporte de Imágenes y Banco AMOS 🖼️
 
 **REQUERIMIENTO:**

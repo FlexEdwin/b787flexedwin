@@ -70,7 +70,7 @@ Basado en las llamadas RPC y consultas `sb.from()` en `src/js/app.js`, este es e
     - `numero`: Identificador legible para el usuario.
     - `texto`: Enunciado de la pregunta.
     - `opcion_a`, `opcion_b`, `opcion_c`, `opcion_d`: Textos de las respuestas.
-    - `correcta`: Char ('A', 'B', 'C', 'D') indicando la respuesta correcta.
+    - `correcta`: TEXT o VARCHAR. Indica la/las opciones correctas (ej. 'A' o 'A,B' para múltiples válidas).
     - `image_url`: TEXT (opcional). Nombre de la imagen en Supabase Storage.
     - _(Probable)_ `ata_id`: FK hacia tabla `atas`.
     - _(Probable)_ `banco_id`: FK hacia tabla `bancos`.

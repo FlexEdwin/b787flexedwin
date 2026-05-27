@@ -519,7 +519,8 @@ volverAlDashboard() {
             // 1. NORMALIZACIÓN Y DIAGNÓSTICO
             const seleccion = String(letra).trim().toUpperCase();
             const correcta = String(this.preguntaActual.correcta).trim().toUpperCase();
-            const esCorrecta = seleccion === correcta;
+            // Soporta respuestas múltiples en BD, ej: "A,B" o "AB"
+            const esCorrecta = correcta.includes(seleccion);
 
             console.log('🔍 Validando:', { 
                 seleccion: seleccion, 

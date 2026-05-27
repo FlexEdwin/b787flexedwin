@@ -284,17 +284,17 @@
                                 class="w-full p-4 rounded-xl text-left transition-all duration-200 border-2 relative group outline-none focus:outline-none focus-visible:outline-none"
                                 :class="{
                                     'border-slate-700 hover:bg-slate-700/50 hover:border-slate-600': !bloqueado,
-                                    'bg-green-900/50 border-green-500 text-white': bloqueado && opcion.letra === preguntaActual.correcta,
-                                    'bg-red-900/50 border-red-500 text-white': bloqueado && seleccionada === opcion.letra && seleccionada !== preguntaActual.correcta,
-                                    'opacity-50 border-slate-800': bloqueado && opcion.letra !== preguntaActual.correcta && seleccionada !== opcion.letra
+                                    'bg-green-900/50 border-green-500 text-white': bloqueado && String(preguntaActual.correcta).toUpperCase().includes(opcion.letra),
+                                    'bg-red-900/50 border-red-500 text-white': bloqueado && seleccionada === opcion.letra && !String(preguntaActual.correcta).toUpperCase().includes(opcion.letra),
+                                    'opacity-50 border-slate-800': bloqueado && !String(preguntaActual.correcta).toUpperCase().includes(opcion.letra) && seleccionada !== opcion.letra
                                 }">
                             
                             <div class="flex items-start gap-4">
                                 <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm border transition-colors"
                                      :class="{
                                          'bg-slate-700 border-slate-600 text-slate-300': !bloqueado,
-                                         'bg-green-500 border-green-500 text-black': bloqueado && opcion.letra === preguntaActual.correcta,
-                                         'bg-red-500 border-red-500 text-white': bloqueado && seleccionada === opcion.letra && seleccionada !== preguntaActual.correcta
+                                         'bg-green-500 border-green-500 text-black': bloqueado && String(preguntaActual.correcta).toUpperCase().includes(opcion.letra),
+                                         'bg-red-500 border-red-500 text-white': bloqueado && seleccionada === opcion.letra && !String(preguntaActual.correcta).toUpperCase().includes(opcion.letra)
                                      }">
                                     <span x-text="opcion.letra"></span>
                                 </div>
