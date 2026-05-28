@@ -145,19 +145,47 @@ Se determinó que la pérdida de la sesión de preguntas (Quiz) no era causada p
 | m1 | **Alpine.js sin versión fija** (`//unpkg.com/alpinejs` sin `@version`), riesgo de breaking change. | ✅ Anclado a `v3.14.1`. |
 | m2 | **`console.log` de debug en producción** exponiendo parámetros de RPC y estado interno. | ℹ️ Limpieza parcial; logs de error conservados intencionalmente. |
 
-### 6.2. Estado Final del Proyecto
+### 6.2. Estado Final de v1.3
+El proyecto alcanzó un nivel de calidad funcional en todos los frentes para su despliegue inicial.
 
-El proyecto **B787 Escalafón v1.3** alcanza un nivel de calidad **PRODUCCIÓN READY** en todos los frentes:
+---
 
-- ✅ **Lógica de negocio:** Robusta, sin estados rotos.
-- ✅ **UX Móvil:** Bug de highlight residual eliminado con solución multicapa.
-- ✅ **PWA / Offline:** Service Worker sincronizado y funcional por primera vez.
-- ✅ **Performance:** Peticiones a Supabase reducidas en ~70% en el startup gracias a la paralelización.
-- ✅ **Mantenibilidad:** Código limpio, sin funciones huérfanas ni duplicaciones.
-- ✅ **SEO:** Meta tags básicos implementados.
+## 7. Auditoría y Mejoras de UX (Mayo 2026) — v1.6
 
-### 6.3. Próximos Pasos Recomendados
+**Fecha:** 2026-05-28  
+**Auditor:** Antigravity (AI System)  
+**Versión Auditada:** v1.3 → v1.6 (Estable)
 
-1. **Mantenimiento de Contenido** — Los bancos B787, Inglés, AMOS y Regulaciones Aeronáuticas están activos. Continuar alimentando la base de datos según sea necesario.
-2. **Añadir `manifest.json` con `start_url` y `icons`** — Para instalación PWA completa en Android/iOS.
-3. **Limpiar archivos backup** — Mover `index_original_backup.html` e `index_professional.html` a `/_archive` o eliminar si Git está activo.
+### 7.1. Hallazgos y Cambios Implementados
+
+#### 🔴 CRÍTICOS (todos resueltos)
+
+| ID | Hallazgo | Resolución |
+|----|----------|------------|
+| C1 | **Bug "Imagen Fantasma" (Ghost Image).** Al pasar de una pregunta con imagen a otra, la imagen de la pregunta anterior persistía en la pantalla mientras la nueva se cargaba en redes lentas, causando confusión. | ✅ Añadida reactividad con `imagenCargada`. En `siguientePregunta()`, se resetea a `false`. En `index.html` se usa `@load="imagenCargada = true"` en la etiqueta `<img>` y se renderiza un skeleton loader/indicador. Si la pregunta no tiene imagen, se marca inmediatamente como cargada. |
+| C2 | **Imposibilidad de resetear el progreso.** Si un usuario quería reiniciar un banco para repasar con el algoritmo completo de estudio general, no tenía opción en pantalla y dependía de llamadas manuales de administrador. | ✅ Se agregó el botón **"Reiniciar Progreso"** en la parte inferior del Dashboard. Este botón pide confirmación del usuario y llama a la RPC de Supabase `reiniciar_progreso(p_ata_id: null)` para limpiar el estado del banco seleccionado sin borrar su historial de fallos generales. |
+| C3 | **Footer estático sin hipervínculos.** El footer mencionaba `flexedwin.com` y `hello@flexedwin.com` pero eran texto simple no interactivo. | ✅ Convertidos a hipervínculos funcionales (`href="https://flexedwin.com"` con `target="_blank"` y `href="mailto:hello@flexedwin.com"`). |
+
+#### 🟡 MEDIOS (todos resueltos)
+
+| ID | Hallazgo | Resolución |
+|----|----------|------------|
+| M1 | **Indicación vaga de progreso al finalizar (Racha).** Al terminar un lote de 25 preguntas, el modal de finalización mostraba una "Racha" que no aportaba valor real de progresión en la base de datos de 100+ preguntas. | ✅ Eliminada la métrica de racha en la pantalla final. Implementado cálculo asíncrono en `cargarStatsBanco()` que suma las preguntas pendientes en general y repaso (con `cantidad: 9999`) y resta del total de preguntas del banco. La pantalla de resultados ahora muestra: **"X preguntas por aprender de Y"** con el progreso real. |
+| M2 | **Falta de documentación interactiva en app.** Los usuarios nuevos no comprendían las reglas de maestría técnica (acertar 2 veces consecutivas) ni la diferencia entre invitados y usuarios registrados. | ✅ Creado el **Botón Flotante de Ayuda (FAQ)** en la esquina inferior derecha. Al hacer clic, abre un modal detallado explicando: almacenamiento de progresos (Local vs Nube), lotes de 25 preguntas, repetición espaciada, modo repaso de fallos, reinicio de progreso y solicitudes de credenciales. |
+| M3 | **Rebranding inconsistente (PWA y local storage).** La app se renombró a "Proyecto Escalafón", pero el manifest.json conservaba "B787 Master Pro" y las claves de localStorage apuntaban a `b787_sesion`. | ✅ Se renombró el PWA en `manifest.json` a "Escalafón" y se migraron las claves de almacenamiento interno a `escalafon_sesion` para coherencia e higiene del sistema. |
+| M4 | **Login poco intuitivo para Invitados.** El botón de entrar como invitado estaba oculto o poco destacado. | ✅ Rediseñada la pantalla de login, dándole la misma o mayor visibilidad a "Entrar como Invitado" para una navegación inmediata y sin fricción. |
+| M5 | **Header redundante e impersonal.** El header no indicaba quién estaba logueado y contenía badges duplicados de la versión anterior. | ✅ Limpieza del header. Se eliminaron insignias huérfanas y se agregó la visualización dinámica del nombre del usuario (`nombreUsuario` getter) que muestra "Invitado" o la primera parte del correo del usuario registrado. |
+
+### 7.2. Estado Final del Proyecto (v1.6)
+
+El proyecto **Proyecto Escalafón v1.6** se consolida como una aplicación de entrenamiento robusta, pulida en UI/UX y adaptada al usuario final:
+- ✅ **Cero confusión de imágenes:** UX fluida y libre de artefactos visuales mediante el fix de carga.
+- ✅ **Autonomía del estudiante:** Capacidad de reiniciar su progreso de estudio general de forma independiente.
+- ✅ **Estadísticas transparentes:** El alumno sabe con exactitud cuántas preguntas le faltan por estudiar en todo el banco.
+- ✅ **Onboarding directo:** Modal FAQ incorporado y login ágil de invitados para una adopción instantánea.
+- ✅ **Identidad Corporativa:** Rebranding completo a "Proyecto Escalafón" consistente en código, assets y metadatos.
+
+### 7.3. Próximos Pasos Recomendados
+
+1. **Monitoreo de RPCs de Base de Datos:** Validar que la concurrencia de la RPC `reiniciar_progreso` sea óptima con muchos usuarios.
+2. **Carga y Optimización de Contenido:** Continuar la revisión de textos duplicados en Supabase, especialmente en el banco de Inglés.

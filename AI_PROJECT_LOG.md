@@ -2,10 +2,46 @@
 
 ## Estado Actual
 
-- **Versión:** v1.5 (Estable)
-- **Progreso:** ~97% completado.
-- **Funcionalidad:** Login completo, Multi-Banco (B787 / Inglés / AMOS / **Regulaciones Aeronáuticas**), Quiz por lotes de **25 preguntas**, Dashboard adaptativo, Gráficas, Modo Repaso, PWA funcional.
+- **Versión:** v1.6 (Estable)
+- **Progreso:** ~100% completado.
+- **Funcionalidad:** Login completo con foco en invitados, Multi-Banco (B787 / Inglés / AMOS / Regulaciones), Quiz por lotes de 25 preguntas, Dashboard adaptativo con botón de reinicio de progreso, Gráficas de rendimiento, Visualización de preguntas pendientes reales, Modo Repaso, Fix de imágenes cargadas (Ghost Image), Modal FAQ/Ayuda y PWA funcional.
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-05-28] - Proyecto Escalafón & Mejoras UX (v1.6) 🚀
+
+**REQUERIMIENTO:**
+1. Rebranding completo a "Proyecto Escalafón" (títulos, metadatos, PWA manifest, claves de almacenamiento local).
+2. Botón interactivo para reiniciar el progreso de un banco de estudio.
+3. Arreglar bug de "imagen fantasma" (ghost image) en transiciones de preguntas con fotos.
+4. Quitar el contador de "racha" en la pantalla final de resultados y reemplazarlo por la métrica de preguntas restantes reales por aprender del banco seleccionado.
+5. Diseñar un modal flotante de FAQ/Ayuda para guiar a los alumnos sobre el funcionamiento de la app.
+6. Ajustar la pantalla de Login para dar mayor prominencia a la opción "Entrar como Invitado".
+7. Agregar hipervínculos funcionales a `flexedwin.com` y `hello@flexedwin.com` en el footer.
+8. Limpieza general del header (mostrar email del usuario o "Invitado", quitar badges redundantes).
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- ✅ **index.html**:
+  - Actualizado el título de la página, descripción SEO, metatags de OpenGraph y PWA.
+  - Implementado modal flotante de FAQ/Ayuda con botón disparador en la esquina inferior derecha.
+  - Rediseñado login y header para mostrar email o 'Invitado' dinámicamente y hacer el login de invitado el CTA principal.
+  - Añadido botón "Reiniciar Progreso" en Dashboard con confirmación de usuario.
+  - Implementada reactividad de imagen con spinner/skeleton y `@load="imagenCargada = true"` para solucionar el bug de imagen fantasma.
+  - Agregado contenedor en resultados mostrando `preguntasPendientes` y `totalPreguntasBanco`.
+  - Footer actualizado con hipervínculos correctos y target blank.
+- ✅ **app.js**:
+  - Migradas todas las referencias de `b787_sesion` a `escalafon_sesion` en el almacenamiento local.
+  - Añadidos estados `imagenCargada`, `mostrarAyuda`, `totalPreguntasBanco` y `preguntasMaestradasBanco`.
+  - Añadida función `cargarStatsBanco(bancoId)` que consulta el recuento total de preguntas de la BD y resta la longitud de las consultas completas de `obtener_general` y `obtener_repaso` (9999 registros) para calcular el total de preguntas pendientes/maestradas.
+  - Añadido getter `nombreUsuario`, `esInvitado` y `preguntasPendientes`.
+  - Actualizado `seleccionarBanco` para cargar metadatos de atas y estadísticas en paralelo con `Promise.all`.
+  - Modificado `siguientePregunta()` para apagar `imagenCargada = false` en transiciones de carga, reactivándolo si la siguiente pregunta no tiene imagen.
+  - Convertida `finalizarSesion()` a asíncrona para refrescar las estadísticas del banco antes de pasar a la vista de final.
+- ✅ **manifest.json**:
+  - Renombrada la PWA de "B787 Master Pro" a "Escalafón".
+- ✅ **Documentación (.md)**:
+  - Actualizados `PROJECT_CONTEXT.md`, `PROJECT_BRIEF.md`, `PROJECT_AUDIT_REPORT.md`, `SYSTEM_PROMPT.md` y `AI_PROJECT_LOG.md` para reflejar y consolidar todos los cambios.
 
 ---
 

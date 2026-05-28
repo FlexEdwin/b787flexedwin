@@ -1,6 +1,6 @@
 {
-    "name": "B787 Master Pro",
-    "short_name": "B787 Pro",
+    "name": "Escalafón",
+    "short_name": "Escalafón",
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#0f172a",

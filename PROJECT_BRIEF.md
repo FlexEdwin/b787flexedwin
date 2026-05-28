@@ -1,4 +1,4 @@
-# PROJECT_BRIEF.md: B787 & Aviation Tech Certification Platform
+# PROJECT_BRIEF.md: Proyecto Escalafón
 
 ## 1. Visión del Producto
 
@@ -36,8 +36,17 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 ### C. Gestión de Contenidos & UX ✅ **COMPLETADO (v1.0)**
 
 - **Ingesta**: CSV/Importación directa a Supabase.
-- **Batch Loading**: ✅ Implementada carga por lotes (50 preguntas) para eliminar latencia.
+- **Batch Loading**: ✅ Implementada carga por lotes (ahora optimizada a 25 preguntas para sesiones de estudio efectivas) reduciendo latencia.
 - **Offline-Ready**: ✅ Service Worker y LocalStorage configurados para tolerancia a fallos de red.
+
+### D. Estabilización y Mejoras de Experiencia (v1.6) ✅ **COMPLETADO**
+
+- **Reinicio de Progreso**: ✅ Añadido botón interactivo y confirmable para reiniciar progreso del banco activo en la base de datos (Supabase RPC `reiniciar_progreso`).
+- **Fix "Imagen Fantasma" (Ghost Image)**: ✅ Oculta inmediatamente la imagen de la pregunta anterior durante las transiciones de carga, mostrando un skeleton loader en conexiones lentas.
+- **Indicador de Preguntas Pendientes**: ✅ Se reemplazó el sistema de "racha" en la pantalla de resultados por una métrica real: "X preguntas por aprender de Y", calculado restando las preguntas devueltas en modo general y repaso del total del banco.
+- **Ayuda Integrada (FAQ)**: ✅ Modal flotante interactivo con respuestas rápidas sobre cómo funciona la doble validación, sincronización de progreso, y reinicio.
+- **Rediseño de Login & Header**: ✅ Mayor relevancia al acceso de "Invitado" y personalización del header mostrando el email o "Invitado" según corresponda.
+- **Footer Interactivo**: ✅ Enlaces funcionales hacia el sitio principal `flexedwin.com` y correo de soporte `hello@flexedwin.com`.
 
 ---
 

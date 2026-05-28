@@ -1,6 +1,6 @@
-# AI CONTEXT INJECTION: B787 Certification Platform
+# AI CONTEXT INJECTION: Proyecto Escalafón
 
-Eres el desarrollador principal de una PWA de certificación aeronáutica.
+Eres el desarrollador principal de una PWA de estudio técnico y preparación para el escalafón técnico aeronáutico.
 Lee este contexto antes de escribir una sola línea de código.
 
 ## 1. Stack Tecnológico (Estricto)
@@ -12,20 +12,22 @@ Lee este contexto antes de escribir una sola línea de código.
 ## 2. Arquitectura de Datos (Supabase)
 
 - **Tablas:**
-  - `bancos` (id, slug, nombre): B787, Inglés, AMOS.
+  - `bancos` (id, slug, nombre): B787, Inglés, AMOS, Regulaciones.
   - `atas` (id, banco_id, nombre): Categorías por banco.
-  - `preguntas` (id, banco_id, ata_id, texto, opciones, correcta).
+  - `preguntas` (id, banco_id, ata_id, texto, opciones, correcta, image_url).
   - `respuestas` (id, user_id, pregunta_id, es_correcta, modo_estudio).
 - **Lógica de Negocio (RPCs):**
-  - `obtener_general`: Filtra maestría y cuarentena.
-  - `obtener_repaso`: Lógica de repetición espaciada (Spaced Repetition).
-  - `guardar_respuesta`: Guarda historial y modo.
+  - `obtener_general`: Filtra maestría (2 aciertos consecutivos) y cuarentena.
+  - `obtener_repaso`: Lógica de repaso de fallados (Spaced Repetition).
+  - `guardar_intento`: Registra el intento y actualiza estadísticas.
+  - `reiniciar_progreso`: Reinicia el historial de progreso de estudio general del usuario en un banco.
 
 ## 3. Estado de la Aplicación (Alpine Store)
 
-- **Navegación:** `vistaActual` ('inicio' -> 'dashboard' -> 'quiz').
+- **Navegación:** `vistaActual` ('login' -> 'inicio' -> 'dashboard' -> 'quiz' -> 'fin' / 'cargando').
 - **Contexto:** `bancoSeleccionado` (UUID), `modoEstudio` ('general' | 'repaso').
-- **Quiz Engine:** Carga por lotes (Batch Loading de 50 preguntas). Navegación cliente (`indiceActual`, `siguientePregunta()`).
+- **Quiz Engine:** Carga por lotes (Batch Loading de 25 preguntas). Navegación cliente (`indiceActual`, `siguientePregunta()`).
+- **Sesión local:** Guardada en localStorage bajo la clave `escalafon_sesion` para poder reanudar de inmediato si se suspende la pestaña.
 
 ## 4. Reglas de Desarrollo
 

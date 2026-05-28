@@ -39,6 +39,12 @@ function app() {
         // --- UX / UI ---
         toast: { visible: false, mensaje: '', tipo: 'info' },
         chartInstance: null,
+        imagenCargada: true, // 🆕 FIX GHOST IMAGE: controla visibilidad de img
+        mostrarAyuda: false, // 🆕 FAQ modal
+
+        // --- STATS DEL BANCO ---
+        totalPreguntasBanco: 0,
+        preguntasMaestradasBanco: 0,
 
         // --- GETTERS COMPUTADOS ---
         get preguntaActual() {
@@ -92,6 +98,20 @@ function app() {
             if (score < 200) return 'Técnico Nivel 1';
             if (score < 500) return 'Técnico Nivel 2';
             return 'Inspector / Ing.';
+        },
+        // 🆕 HEADER: Nombre visible del usuario
+        get nombreUsuario() {
+            if (!this.auth.user) return '';
+            if (this.auth.user.is_anonymous) return 'Invitado';
+            const email = this.auth.user.email || '';
+            if (email) return email.split('@')[0];
+            return 'Usuario';
+        },
+        get esInvitado() {
+            return this.auth.user?.is_anonymous === true;
+        },
+        get preguntasPendientes() {
+            return Math.max(0, this.totalPreguntasBanco - this.preguntasMaestradasBanco);
         },
 
         // --- CICLO DE VIDA ---
@@ -230,7 +250,7 @@ async cargarAtas(bancoId = null) {
         },
 
         checkLocalStorage() {
-            this.sesionGuardada = !!localStorage.getItem('b787_sesion');
+            this.sesionGuardada = !!localStorage.getItem('escalafon_sesion');
         },
 
         // --- AUTENTICACIÓN ---
@@ -278,7 +298,7 @@ async cargarAtas(bancoId = null) {
             this.session = null;
             this.bancoSeleccionado = null;
             this.preguntas = [];
-            ['b787_sesion', 'app_banco_actual', 'app_vista'].forEach(k => localStorage.removeItem(k));
+            ['escalafon_sesion', 'app_banco_actual', 'app_vista'].forEach(k => localStorage.removeItem(k));
             this.vistaActual = 'login';
         },
 
@@ -327,7 +347,10 @@ async cargarAtas(bancoId = null) {
         try {
             // 🆕 MULTI-BANCO: Pasamos el id directamente para no depender
             // de que this.bancoSeleccionado ya esté actualizado en el estado reactivo
-            await this.cargarAtas(id);
+            await Promise.all([
+                this.cargarAtas(id),
+                this.cargarStatsBanco(id)
+            ]);
         } catch (e) { console.error(e); }
 
         // AQUÍ ESTÁ LA CLAVE: Asignación directa sin condiciones
@@ -385,7 +408,7 @@ volverAlDashboard() {
         // --- LÓGICA DEL QUIZ ---
         recuperarSesion() {
             try {
-                const saved = JSON.parse(localStorage.getItem('b787_sesion'));
+                const saved = JSON.parse(localStorage.getItem('escalafon_sesion'));
                 if (saved && saved.preguntas && saved.preguntas.length > 0) {
                     this.preguntas = saved.preguntas;
                     this.indiceActual = saved.indiceActual || 0;
@@ -404,7 +427,7 @@ volverAlDashboard() {
                     this.vistaActual = 'inicio'; // Fallback si no hay preguntas válidas
                 }
             } catch (e) { 
-                localStorage.removeItem('b787_sesion'); 
+                localStorage.removeItem('escalafon_sesion'); 
                 this.vistaActual = 'inicio'; 
             }
         },
@@ -571,16 +594,20 @@ volverAlDashboard() {
             this.bloqueado = false;
             this.seleccionada = null;
             this.mostrarSiguiente = false;
+            this.imagenCargada = false; // 🆕 FIX GHOST: Ocultar imagen anterior inmediatamente
             
             // Navigate to next question
             this.indiceActual++;
             
             // 🎯 Check if batch is complete
             if (this.indiceActual >= this.preguntas.length) {
-                const stats = `¡Lote completado!\n\nHas respondido ${this.preguntas.length} preguntas.\n\n✅ Correctas: ${this.stats.correctas}\n❌ Incorrectas: ${this.stats.incorrectas}\n🎯 Racha: ${this.stats.racha}`;
-                alert(stats);
-                this.volverAlDashboard();
+                this.finalizarSesion();
                 return;
+            }
+            
+            // 🆕 FIX GHOST: Si la nueva pregunta NO tiene imagen, marcar como cargada
+            if (!this.preguntas[this.indiceActual]?.image_url) {
+                this.imagenCargada = true;
             }
             
             // Shuffle options for next question
@@ -622,7 +649,7 @@ volverAlDashboard() {
         },
 
         guardarEstadoLocal() {
-            localStorage.setItem('b787_sesion', JSON.stringify({
+            localStorage.setItem('escalafon_sesion', JSON.stringify({
                 preguntas: this.preguntas,
                 indiceActual: this.indiceActual,
                 stats: this.stats,
@@ -632,9 +659,14 @@ volverAlDashboard() {
             }));
         },
 
-        finalizarSesion() {
+        async finalizarSesion() {
+            // 🆕 Cargar stats actualizadas del banco antes de mostrar resultados
+            try {
+                await this.cargarStatsBanco(this.bancoSeleccionado);
+            } catch(e) { console.error('Stats refresh error:', e); }
+
             this.vistaActual = 'fin';
-            localStorage.removeItem('b787_sesion');
+            localStorage.removeItem('escalafon_sesion');
             this.sesionGuardada = false;
 
             if (this.porcentajeAcierto >= 80 && window.confetti) {
@@ -693,6 +725,49 @@ volverAlDashboard() {
             this.bloqueado = false;
             this.seleccionada = null;
             this.mostrarSiguiente = false;
+        },
+
+        // 🆕 STATS BANCO: Carga total de preguntas y maestradas del banco activo
+        async cargarStatsBanco(bancoId) {
+            if (!bancoId) return;
+            try {
+                // 1. Total de preguntas del banco
+                const { count: total, error: errTotal } = await sb
+                    .from('preguntas')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('banco_id', bancoId);
+                
+                if (errTotal) throw errTotal;
+                this.totalPreguntasBanco = total || 0;
+
+                // 2. Preguntas pendientes en modo general
+                const { data: pendGen, error: errGen } = await sb.rpc('obtener_general', {
+                    p_banco_id: bancoId,
+                    p_ata_id: null,
+                    cantidad: 9999
+                });
+                if (errGen) throw errGen;
+
+                // 3. Preguntas pendientes en modo repaso (las falladas que aún no han sido maestradas)
+                const { data: pendRep, error: errRep } = await sb.rpc('obtener_repaso', {
+                    p_banco_id: bancoId,
+                    cantidad: 9999
+                });
+                if (errRep) throw errRep;
+                
+                const cantPendientes = (pendGen?.length || 0) + (pendRep?.length || 0);
+                this.preguntasMaestradasBanco = this.totalPreguntasBanco - cantPendientes;
+
+                console.log('📊 Stats banco:', {
+                    total: this.totalPreguntasBanco,
+                    maestradas: this.preguntasMaestradasBanco,
+                    pendientesGeneral: pendGen?.length || 0,
+                    pendientesRepaso: pendRep?.length || 0,
+                    pendientesTotal: cantPendientes
+                });
+            } catch (e) {
+                console.error('⚠️ Error cargando stats del banco:', e);
+            }
         },
 
         showToast(msg, tipo) {

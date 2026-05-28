@@ -1,4 +1,4 @@
-# Auditoría Técnica del Proyecto: B787 Certification Platform
+# Auditoría Técnica del Proyecto: Proyecto Escalafón
 
 Este documento recoge el estado actual, arquitectura y reglas de negocio del proyecto, generado tras un análisis exhaustivo del código fuente.
 
@@ -109,27 +109,30 @@ Para soportar el algoritmo de Doble Validación, la tabla `respuestas` debe regi
 
 ---
 
-## 4. Estado Actual del Proyecto (v1.0 Candidate)
+## 4. Estado Actual del Proyecto (v1.6 Estable)
 
 ### ✅ Arquitectura & Core
 
 - **Navegación 3-Niveles**: `Inicio (Selección)` -> `Dashboard (Config)` -> `Quiz (Estudio)`.
-- **Carga Eficiente**: Implementado Batch Loading (50 preguntas/request) reduciendo latencia.
+- **Carga Eficiente**: Implementado Batch Loading (25 preguntas/request) reduciendo latencia.
 - **Validación Robusta**: Algoritmo "Direct-Check" (sin mapeo visual) que elimina falsos negativos.
-- **Persistencia**: Manejo de sesión resiliente con recuperación vía `localStorage`.
+- **Persistencia**: Manejo de sesión resiliente con recuperación vía `localStorage` utilizando prefijos dedicados (`escalafon_sesion`).
 
 ### ✅ Features Completadas
 
-- **Autenticación**: Flujo completo (Login / Invitado / Logout) con UI dedicada.
+- **Autenticación**: Flujo completo con UI dedicada (se destaca la opción "Entrar como Invitado" y se limpia el header según el tipo de usuario).
 - **Multi-Banco**: Operativo para B787, Inglés, AMOS y Regulaciones Aeronáuticas.
-- **Soporte de Imágenes**: Renderizado de imágenes de referencia en las preguntas (ej. AMOS) directamente desde el bucket público `preguntas-media` de Supabase Storage.
-- **Feedback Visual**: UI de alto contraste para Dark Mode (`bg-green-900`/`bg-red-900`).
-- **Adaptabilidad**: Dashboard se ajusta al contenido del banco (oculta ATAs si no existen).
+- **Soporte de Imágenes**: Renderizado adaptativo de imágenes desde el bucket `preguntas-media` de Supabase Storage.
+- **Fix "Imagen Fantasma" (Ghost Image)**: Control de transición de imágenes con estado `imagenCargada` y skeleton loading para evitar visualización incorrecta durante conexiones lentas.
+- **Reinicio de Progreso**: Botón confirmable para borrar progreso acumulado del banco activo llamando al procedimiento `reiniciar_progreso`.
+- **Estadísticas de Aprendizaje Reales**: Visualización del progreso real ("X preguntas por aprender de Y") en lugar del contador de racha tradicional en la pantalla de resultados.
+- **Panel de Ayuda / FAQ**: Modal flotante disponible en toda la aplicación para explicar de forma interactiva las mecánicas de estudio, sincronización y doble validación.
+- **Feedback Visual y Enlaces**: Footer dinámico con enlaces interactivos a `flexedwin.com` y correo de soporte `hello@flexedwin.com`.
 
 ### ⚠️ Deuda Técnica Restante
 
 - **Bundling**: Se mantiene la política "No Build Tools" (CDN/Scripts directos), lo cual limita tree-shaking pero cumple el requerimiento de simplicidad.
-- **Offline Mode**: Service Worker básico presente pero requiere estrategia de sincronización avanzada para "Offline-First" real.
+- **Offline Mode**: Service Worker cachea activos de CDN estables pero requiere estrategia de sincronización avanzada para "Offline-First" real.
 
 ---
 
@@ -137,15 +140,23 @@ Para soportar el algoritmo de Doble Validación, la tabla `respuestas` debe regi
 
 ### Objetivo
 
-Plataforma de entrenamiento de alto rendimiento para certificación B787.
+Plataforma de entrenamiento de alto rendimiento para certificaciones técnicas.
 
-### Mecánica de Validación (Refactor 2025)
+### Mecánica de Validación
 
 1. **Anti-Memorización**: Las opciones se barajan pero conservan su identidad (`{letra: 'B', texto: '...'}`).
-2. **Validación**: Al hacer click, se compara `opcion.letra` vs `db.correcta` directamente.
-3. **Persistencia**: Cada respuesta se envía a Supabase (`rpc/guardar_respuesta`) con el ID del usuario. Si falla la red, el quiz continúa, priorizando la experiencia de estudio.
+2. **Validación**: Al hacer click, se compara `opcion.letra` vs `db.correcta` directamente. Soporta múltiples letras correctas (ej. `A,B`).
+3. **Persistencia**: Cada respuesta se envía a Supabase (`rpc/guardar_intento`) con el ID del usuario. Si falla la red, el quiz continúa, priorizando la experiencia de estudio.
+
+### Lógica de Progreso y Estadísticas del Banco (v1.6)
+
+1. **Total de Preguntas del Banco**: Cantidad de preguntas asociadas al `banco_id` activo.
+2. **Preguntas por Aprender (Pendientes)**: Suma de las preguntas devueltas por `obtener_general(9999)` (no dominadas) y `obtener_repaso(9999)` (en repaso por fallos).
+3. **Preguntas Dominadas (Maestradas)**: Calculadas como `Total del Banco - Preguntas por Aprender`. Esto representa el progreso real del usuario.
+4. **Reinicio de Progreso**: El usuario puede limpiar su progreso de aciertos del banco actual (llamando a `reiniciar_progreso` vía RPC), lo que devuelve todas las preguntas al pool general de estudio sin eliminar el registro histórico de errores.
 
 ### Seguridad
 
 - Validación "Optimista" en cliente para UX instantánea.
 - Validación asíncrona en servidor para registro oficial de progreso.
+- Visualización de email/nombre personalizada en header según sesión (soporta usuarios anónimos/invitados).
