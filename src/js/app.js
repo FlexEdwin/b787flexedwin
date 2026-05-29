@@ -324,7 +324,10 @@ async cargarAtas(bancoId = null) {
                 this.showToast("¡Progreso reiniciado! A empezar de cero.", 'info');
                 
                 // Recargar datos frescos
-                await this.cargarAtas(); 
+                await Promise.all([
+                    this.cargarAtas(),
+                    this.cargarStatsBanco(this.bancoSeleccionado)
+                ]);
                 this.vistaActual = 'dashboard';
 
             } catch (e) {

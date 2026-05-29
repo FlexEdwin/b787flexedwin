@@ -38,6 +38,7 @@
   - Actualizado `seleccionarBanco` para cargar metadatos de atas y estadísticas en paralelo con `Promise.all`.
   - Modificado `siguientePregunta()` para apagar `imagenCargada = false` en transiciones de carga, reactivándolo si la siguiente pregunta no tiene imagen.
   - Convertida `finalizarSesion()` a asíncrona para refrescar las estadísticas del banco antes de pasar a la vista de final.
+  - **Hotfix:** Corregida función `reiniciarProgreso()` para invocar `cargarStatsBanco()` junto a `cargarAtas()`, resolviendo un bug donde la UI visualmente no refrescaba el número de preguntas pendientes tras un reinicio exitoso en BD.
 - ✅ **manifest.json**:
   - Renombrada la PWA de "B787 Master Pro" a "Escalafón".
 - ✅ **Documentación (.md)**:
