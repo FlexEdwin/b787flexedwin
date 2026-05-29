@@ -312,8 +312,12 @@ async cargarAtas(bancoId = null) {
             this.mensajeCarga = 'Reiniciando sistemas...';
 
             try {
-                // Llamada al RPC. Si quieres resetear solo un ATA, pasarías { p_ata_id: 29 }
-                const { error } = await sb.rpc('reiniciar_progreso', { p_ata_id: null });
+                // CRÍTICO: El RPC ahora borra de 'respuestas' (que es lo que realmente
+                // controla la maestría en obtener_general), filtrado por banco activo.
+                const { error } = await sb.rpc('reiniciar_progreso', {
+                    p_banco_id: this.bancoSeleccionado,
+                    p_ata_id: null
+                });
 
                 if (error) throw error;
 

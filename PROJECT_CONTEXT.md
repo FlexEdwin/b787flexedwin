@@ -82,7 +82,7 @@ Basado en las llamadas RPC y consultas `sb.from()` en `src/js/app.js`, este es e
 
 El backend delega lógica compleja a funciones de base de datos para seguridad y encapsulamiento:
 
-- `reiniciar_progreso(p_ata_id)`: Resetea historial del usuario.
+- `reiniciar_progreso(p_banco_id, p_ata_id)`: Reinicia el progreso del usuario borrando sus registros de `respuestas` (que es lo que realmente controla la maestría en `obtener_general`) y reseteando `progreso.respondida_bien_seguido`. Filtra por banco activo (`p_banco_id`) y opcionalmente por ATA.
 - `repasar_falladas(filtro_ata_id)`: Devuelve preguntas falladas previamente.
 - `estudiar_preguntas(filtro_ata_id)`: Devuelve preguntas nuevas o aleatorias.
 - `registrar_respuesta(p_pregunta_id, es_correcta)`: Guarda el intento y actualiza stats.
@@ -153,7 +153,7 @@ Plataforma de entrenamiento de alto rendimiento para certificaciones técnicas.
 1. **Total de Preguntas del Banco**: Cantidad de preguntas asociadas al `banco_id` activo.
 2. **Preguntas por Aprender (Pendientes)**: Suma de las preguntas devueltas por `obtener_general(9999)` (no dominadas) y `obtener_repaso(9999)` (en repaso por fallos).
 3. **Preguntas Dominadas (Maestradas)**: Calculadas como `Total del Banco - Preguntas por Aprender`. Esto representa el progreso real del usuario.
-4. **Reinicio de Progreso**: El usuario puede limpiar su progreso de aciertos del banco actual (llamando a `reiniciar_progreso` vía RPC), lo que devuelve todas las preguntas al pool general de estudio sin eliminar el registro histórico de errores.
+4. **Reinicio de Progreso**: El usuario puede limpiar su progreso del banco actual llamando a `reiniciar_progreso(p_banco_id, p_ata_id)` vía RPC. El RPC borra los registros de la tabla `respuestas` para ese banco (que es lo que `obtener_general` consulta para determinar maestría) y resetea `progreso.respondida_bien_seguido`. Esto devuelve todas las preguntas al pool general de estudio.
 
 ### Seguridad
 

@@ -39,6 +39,25 @@
   - Modificado `siguientePregunta()` para apagar `imagenCargada = false` en transiciones de carga, reactivándolo si la siguiente pregunta no tiene imagen.
   - Convertida `finalizarSesion()` a asíncrona para refrescar las estadísticas del banco antes de pasar a la vista de final.
   - **Hotfix:** Corregida función `reiniciarProgreso()` para invocar `cargarStatsBanco()` junto a `cargarAtas()`, resolviendo un bug donde la UI visualmente no refrescaba el número de preguntas pendientes tras un reinicio exitoso en BD.
+
+### [2026-05-29] - Hotfix Crítico: Reinicio de Progreso nunca funcionó 🔬
+
+**DIAGNÓSTICO (Root Cause Analysis):**
+Se descubrió que la función `reiniciar_progreso` en Supabase **nunca borró el progreso real**. El RPC solo actualizaba la columna `respondida_bien_seguido = 0` en la tabla `progreso`, pero `obtener_general` **no consulta la tabla `progreso` en absoluto**. La maestría de las preguntas se determina exclusivamente a partir de los últimos 2 registros de la tabla `respuestas`:
+```sql
+AND NOT EXISTS (
+  SELECT 1 FROM (
+    SELECT es_correcta FROM respuestas r
+    WHERE r.pregunta_id = p.id AND r.user_id = v_user_id AND r.modo_estudio = 'general'
+    ORDER BY r.created_at DESC LIMIT 2
+  ) sub WHERE sub.es_correcta = true HAVING COUNT(*) = 2
+)
+```
+Por lo tanto, actualizar `progreso` no tenía ningún efecto en lo que `obtener_general` devolvía.
+
+**FIX APLICADO (Dos partes):**
+- ✅ **Supabase (SQL):** Reescrito el RPC `reiniciar_progreso` para que acepte `p_banco_id` y `p_ata_id`, y ejecute un `DELETE FROM respuestas` filtrando por el banco del usuario. Adicionalmente mantiene el `UPDATE progreso` para consistencia.
+- ✅ **app.js:** Actualizada la llamada al RPC para pasar `p_banco_id: this.bancoSeleccionado` de modo que el reset filtre únicamente el banco que el usuario está estudiando, sin tocar el historial de otros bancos.
 - ✅ **manifest.json**:
   - Renombrada la PWA de "B787 Master Pro" a "Escalafón".
 - ✅ **Documentación (.md)**:
