@@ -1,8 +1,12 @@
 {
-    "name": "Escalafón",
+    "name": "Proyecto Escalafón",
     "short_name": "Escalafón",
+    "description": "Plataforma de estudio y preparación para escalafón técnico aeronáutico.",
+    "lang": "es",
     "start_url": "./index.html",
+    "scope": "./",
     "display": "standalone",
+    "orientation": "portrait-primary",
     "background_color": "#0f172a",
     "theme_color": "#0f172a",
     "icons": [

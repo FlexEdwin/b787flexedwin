@@ -175,7 +175,7 @@
                 Estamos migrando la base de datos para <span class="text-blue-400 font-bold" x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre">este banco</span>.
                 <br>Esta sección estará disponible muy pronto.
             </p>
-            <button @click="vistaActual = 'inicio'; bancoSeleccionado = 'b787'" 
+            <button @click="vistaActual = 'inicio'; bancoSeleccionado = null" 
                     class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-full transition-all flex items-center gap-2 mx-auto">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 <span>Volver a Selección</span>

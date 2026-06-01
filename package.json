@@ -1,16 +1,16 @@
 {
-  "name": "b787-master",
-  "version": "1.0.0",
-  "description": "App estudio",
+  "name": "escalafon",
+  "version": "1.6.0",
+  "description": "Plataforma PWA de estudio y preparación para escalafón técnico aeronáutico",
   "main": "index.html",
   "scripts": {
     "build": "npm run build:css && npm run download:js",
     "build:css": "tailwindcss -i ./src/input.css -o ./output.css --minify",
     "watch": "tailwindcss -i ./src/input.css -o ./output.css --watch",
-    "download:js": "curl -L -o alpine.js https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js && curl -L -o supabase.js https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2 && curl -L -o chart.js https://cdn.jsdelivr.net/npm/chart.js && curl -L -o confetti.js https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js && curl -L -o icon.png https://cdn-icons-png.flaticon.com/512/7894/7894049.png"
+    "download:js": "curl -L -o alpine.js https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js && curl -L -o supabase.js https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2 && curl -L -o chart.js https://cdn.jsdelivr.net/npm/chart.js && curl -L -o confetti.js https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js && curl -L -o icon.png https://cdn-icons-png.flaticon.com/512/7894/7894049.png"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["pwa", "aeronautica", "estudio", "b787", "escalafon"],
+  "author": "FlexEdwin",
   "license": "ISC",
   "devDependencies": {
     "tailwindcss": "^3.4.1"

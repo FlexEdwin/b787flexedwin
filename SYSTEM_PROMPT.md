@@ -35,6 +35,8 @@ Lee este contexto antes de escribir una sola línea de código.
 - **Estilos:** Tailwind clases utilitarias. UI desacoplada de la lógica JS.
 - **Seguridad:** Row Level Security (RLS) activo. Validación visual en cliente, lógica en servidor.
 
-## 5. Tarea Actual
+## 5. Estado Actual
 
-[AQUÍ INSERTARÁS TU SIGUIENTE INSTRUCCIÓN ESPECÍFICA]
+**Versión:** v1.6 — Estable  
+**Última auditoría:** 2026-06-01  
+Todos los módulos funcionales. Prioridad actual: estabilidad y contenido (ver `PROJECT_AUDIT_REPORT.md`).

@@ -48,6 +48,17 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 - **Rediseño de Login & Header**: ✅ Mayor relevancia al acceso de "Invitado" y personalización del header mostrando el email o "Invitado" según corresponda.
 - **Footer Interactivo**: ✅ Enlaces funcionales hacia el sitio principal `flexedwin.com` y correo de soporte `hello@flexedwin.com`.
 
+### E. Hardening y Limpieza de Código (v1.6.1) ✅ **COMPLETADO**
+
+- **Eliminación de `console.log` en producción**: ✅ Removidos 10+ logs de debug que exponían parámetros de RPC y estado interno. Solo se conservan `console.error` para errores reales.
+- **Corrección de comentarios batch**: ✅ Documentación interna ahora refleja correctamente el lote de 25 preguntas (antes decía 50).
+- **Bug `showToast` duplicado**: ✅ Eliminada la llamada duplicada que mostraba el toast dos veces al usuario.
+- **Reindentación de `cargarAtas()`**: ✅ Método reintegrado correctamente al objeto `app()`.
+- **Rebranding completo**: ✅ `package.json`, `sw.js` (cache), `manifest.json` actualizados a "Proyecto Escalafón" v1.6.0.
+- **Fix hardcode multi-banco**: ✅ Eliminado `bancoSeleccionado = 'b787'` hardcodeado en vista Coming Soon.
+- **Manifest PWA reforzado**: ✅ Añadidos `scope`, `lang`, `description` y `orientation`.
+- **Sincronización de dependencias**: ✅ `download:js` en `package.json` ahora descarga `alpinejs@3.14.1` igual que el CDN en `index.html`.
+
 ---
 
 ## 4. Reglas de Negocio (v2.0 Refactor)

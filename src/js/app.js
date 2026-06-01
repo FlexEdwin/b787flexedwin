@@ -10,8 +10,8 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 function app() {
     return {
         // --- ESTADO GLOBAL ---
-        vistaActual: 'cargando', // 🆕 BATCH LOADING: 'cargando' | 'login' | 'inicio' | 'dashboard' | 'quiz' | 'fin'
-        cargando: false, // 🆕 STATE: Global loading indicator
+        vistaActual: 'cargando', // Estados posibles: 'cargando' | 'login' | 'inicio' | 'dashboard' | 'quiz' | 'fin'
+        cargando: false,           // Indicador global de carga
         mensajeCarga: 'Iniciando sistemas...',
         auth: { email: '', password: '', user: null },
         cargandoAuth: false,
@@ -20,18 +20,17 @@ function app() {
 
         // --- BANCOS DE PREGUNTAS ---
         bancoSeleccionado: null,
-        listaBancos: [], // Populated from database via cargarBancos()
-
+        listaBancos: [], // Poblado desde la base de datos vía cargarBancos()
 
         // --- ESTADO DEL QUIZ ---
         modo: '',
-        modoEstudio: 'general', // 'general' o 'repaso' - Double Validation Logic
-        preguntas: [], // 🆕 BATCH: Array de 50 preguntas
-        indiceActual: 0, // 🆕 BATCH: Índice dentro del lote (0-49)
+        modoEstudio: 'general', // 'general' o 'repaso' — Lógica de Doble Validación
+        preguntas: [],           // Lote activo de 25 preguntas
+        indiceActual: 0,         // Índice dentro del lote (0-24)
         bloqueado: false,
-        seleccionada: null, // Letra VISUAL seleccionada (A, B, C, D)
-        ordenOpciones: ['A', 'B', 'C', 'D'], // Mapeo: Posición Visual -> Letra Real en DB
-        opcionesActuales: [], // 🆕 STATE: Opciones mezcladas estáticas para evitar re-render
+        seleccionada: null,      // Letra seleccionada visualmente (A, B, C, D)
+        ordenOpciones: ['A', 'B', 'C', 'D'], // Mapeo: Posición Visual → Letra real en BD
+        opcionesActuales: [],    // Opciones barajadas estáticas para evitar re-render
         mostrarSiguiente: false,
         sesionGuardada: false,
         stats: { correctas: 0, incorrectas: 0, racha: 0 },
@@ -39,8 +38,8 @@ function app() {
         // --- UX / UI ---
         toast: { visible: false, mensaje: '', tipo: 'info' },
         chartInstance: null,
-        imagenCargada: true, // 🆕 FIX GHOST IMAGE: controla visibilidad de img
-        mostrarAyuda: false, // 🆕 FAQ modal
+        imagenCargada: true,  // Controla visibilidad de la imagen: false mientras carga, true cuando lista
+        mostrarAyuda: false,   // Estado del modal de FAQ
 
         // --- STATS DEL BANCO ---
         totalPreguntasBanco: 0,
@@ -48,7 +47,7 @@ function app() {
 
         // --- GETTERS COMPUTADOS ---
         get preguntaActual() {
-            return this.preguntas[this.indiceActual]; // 🆕 BATCH: Getter dinámico
+            return this.preguntas[this.indiceActual]; // Getter dinámico: apunta al índice actual del lote
         },
         get modoTexto() {
             const map = { 'nuevas': 'Estudio General', 'ata': 'Por Categoría', 'fallos': 'Repaso de Fallos' };
@@ -61,7 +60,7 @@ function app() {
             const bucketName = 'preguntas-media'; 
             return `${SUPABASE_URL}/storage/v1/object/public/${bucketName}/${this.preguntaActual.image_url}`;
         },
-        // 🆕 MULTI-BANCO: Retorna el vocabulario correcto de categoría según el banco activo.
+        // Retorna el vocabulario correcto de categoría según el banco activo:
         // 'ingles' → 'Tema' | 'regulaciones' → 'Categoría' | default → 'Capítulo'
         get labelCategoria() {
             const banco = this.listaBancos.find(b => b.id === this.bancoSeleccionado);
@@ -70,12 +69,13 @@ function app() {
             if (slug === 'regulaciones') return 'Categoría';
             return 'Capítulo';
         },
-        // Retrocompatibilidad: mantenemos esIngles para no romper nada pendiente
+        // Retrocompatibilidad: getter esIngles conservado para no romper templates existentes
         get esIngles() {
             const banco = this.listaBancos.find(b => b.id === this.bancoSeleccionado);
             return banco?.slug === 'ingles';
         },
-        get progresoLote() {// 🆕 BATCH: Progreso del lote actual
+        // Progreso legible del lote actual para mostrar en la barra superior del quiz
+        get progresoLote() {
             if (!this.preguntas.length) return 'Sin preguntas';
             return `Pregunta ${this.indiceActual + 1} de ${this.preguntas.length}`;
         },
@@ -99,7 +99,7 @@ function app() {
             if (score < 500) return 'Técnico Nivel 2';
             return 'Inspector / Ing.';
         },
-        // 🆕 HEADER: Nombre visible del usuario
+        // Nombre visible en el header: muestra 'Invitado', el alias del email o 'Usuario'
         get nombreUsuario() {
             if (!this.auth.user) return '';
             if (this.auth.user.is_anonymous) return 'Invitado';
@@ -110,6 +110,7 @@ function app() {
         get esInvitado() {
             return this.auth.user?.is_anonymous === true;
         },
+        // Preguntas pendientes de maestría en el banco activo (nunca negativo)
         get preguntasPendientes() {
             return Math.max(0, this.totalPreguntasBanco - this.preguntasMaestradasBanco);
         },
@@ -195,55 +196,45 @@ function app() {
         },
 
         // --- GESTIÓN DE DATOS ---
-// 🆕 MULTI-BANCO: Filtra ATAs por el banco_id activo.
-// Cada banco (B787, Inglés, AMOS) tiene sus propias filas en la tabla `atas`.
-// La columna `banco_id` en `atas` permite este filtrado sin lógica extra.
-async cargarAtas(bancoId = null) {
-    // Usamos el bancoId recibido o el que ya está en el estado
-    const idFiltro = bancoId || this.bancoSeleccionado;
-    try {
-        let query = sb.from('atas').select('id, nombre').order('id');
-        
-        // Si hay un banco activo, filtrar solo sus ATAs/Temas
-        if (idFiltro) {
-            query = query.eq('banco_id', idFiltro);
-        }
-        
-        const { data, error } = await query;
-        
-        if (error) {
-            console.error('⚠️ Error cargando ATAs:', error);
-            this.atas = []; // Fallback a array vacío
-            return;
-        }
-        
-        // 🛡️ Protección contra data null/undefined
-        if (data && Array.isArray(data)) {
-            this.atas = data;
-            console.log('✅ ATAs/Temas cargados:', data.length, '| Banco ID:', idFiltro);
-        } else {
-            this.atas = [];
-            console.warn('⚠️ No se recibieron ATAs del backend');
-        }
-    } catch (e) {
-        console.error('❌ Error fatal cargando ATAs:', e);
-        this.atas = []; // Siempre tener un array válido
-    }
-},
+
+        // Carga los ATAs/Temas/Categorías del banco activo.
+        // Filtra por banco_id para que cada banco muestre solo sus propias categorías.
+        // Acepta un bancoId explícito para no depender de reactividad asíncrona del estado.
+        async cargarAtas(bancoId = null) {
+            const idFiltro = bancoId || this.bancoSeleccionado;
+            try {
+                let query = sb.from('atas').select('id, nombre').order('id');
+
+                if (idFiltro) {
+                    query = query.eq('banco_id', idFiltro);
+                }
+
+                const { data, error } = await query;
+
+                if (error) {
+                    console.error('Error cargando ATAs:', error);
+                    this.atas = [];
+                    return;
+                }
+
+                this.atas = (data && Array.isArray(data)) ? data : [];
+
+            } catch (e) {
+                console.error('Error fatal cargando ATAs:', e);
+                this.atas = [];
+            }
+        },
 
         async cargarBancos() {
             this.cargando = true;
             try {
                 const { data, error } = await sb.from('bancos').select('id, nombre, descripcion, slug').order('nombre');
                 if (error) throw error;
-                if (data) {
-                    this.listaBancos = data;
-                    console.log('✅ Bancos cargados:', data.length);
-                }
+                if (data) this.listaBancos = data;
             } catch (e) {
-                console.error('❌ Error cargando bancos:', e);
+                console.error('Error cargando bancos:', e);
                 this.showToast('Error cargando bancos de preguntas', 'error');
-                this.listaBancos = []; // Fallback to empty array
+                this.listaBancos = [];
             } finally {
                 this.cargando = false;
             }
@@ -271,7 +262,7 @@ async cargarAtas(bancoId = null) {
             } else {
                 this.auth.user = data.user;
                 await this.cargarAtas();
-                await this.cargarBancos(); // 🐛 FIX: Load banks immediately after login
+                await this.cargarBancos(); // Carga bancos inmediatamente tras login
                 this.vistaActual = 'inicio';
             }
         },
@@ -286,7 +277,7 @@ async cargarAtas(bancoId = null) {
             } else {
                 this.auth.user = data.user;
                 await this.cargarAtas();
-                await this.cargarBancos(); // 🐛 FIX: Load banks immediately after login
+                await this.cargarBancos(); // Carga bancos inmediatamente tras login anónimo
                 this.vistaActual = 'inicio';
                 this.showToast("Modo Invitado Activado", 'info');
             }
@@ -342,30 +333,26 @@ async cargarAtas(bancoId = null) {
         },
 
         // --- SELECCIÓN DE BANCO ---
-    async seleccionarBanco(id) {
-        console.log("📍 FORZANDO VISTA DASHBOARD para banco:", id);
-        this.cargando = true;
-        this.bancoSeleccionado = id;
-        
-        // Persistencia
-        localStorage.setItem('app_banco_actual', id);
-        localStorage.setItem('app_vista', 'dashboard');
 
-        try {
-            // 🆕 MULTI-BANCO: Pasamos el id directamente para no depender
-            // de que this.bancoSeleccionado ya esté actualizado en el estado reactivo
-            await Promise.all([
-                this.cargarAtas(id),
-                this.cargarStatsBanco(id)
-            ]);
-        } catch (e) { console.error(e); }
+        // Navega al dashboard del banco seleccionado cargando sus categorías y estadísticas.
+        // Pasa el id explícitamente para no depender de reactividad asíncrona del estado.
+        async seleccionarBanco(id) {
+            this.cargando = true;
+            this.bancoSeleccionado = id;
 
-        // AQUÍ ESTÁ LA CLAVE: Asignación directa sin condiciones
-        this.vistaActual = 'dashboard'; 
-        
-        this.cargando = false;
-        console.log("✅ Vista actual es ahora:", this.vistaActual);
-    },
+            localStorage.setItem('app_banco_actual', id);
+            localStorage.setItem('app_vista', 'dashboard');
+
+            try {
+                await Promise.all([
+                    this.cargarAtas(id),
+                    this.cargarStatsBanco(id)
+                ]);
+            } catch (e) { console.error('Error seleccionando banco:', e); }
+
+            this.vistaActual = 'dashboard';
+            this.cargando = false;
+        },
 
         cambiarBanco() {
             this.vistaActual = 'inicio';
@@ -374,41 +361,31 @@ async cargarAtas(bancoId = null) {
             localStorage.removeItem('app_vista');
         },
 
-// 🆕 BATCH: Nueva función para iniciar quiz con configuración
-async comenzarQuiz(modo, ataId = null) {
-    console.log('🎬 Iniciando quiz:', { modo, ataId });
-    this.cargando = true;
-    
-    // Setup mode
-    this.modoEstudio = modo === 'repaso' ? 'repaso' : 'general';
-    
-    // Setup ATA filter if provided
-    if (ataId) {
-        this.ataSeleccionado = ataId;
-    }
-    
-    // Load batch (mode determines which RPC to call)
-    const entrada = modo === 'repaso' ? 'fallos' : 
-                    ataId ? parseInt(ataId) : 'nuevas';
-    
-    await this.cargarPreguntas(entrada);
-    
-    // Navigate to quiz if questions were loaded
-    if (this.preguntas.length > 0) {
-        this.vistaActual = 'quiz';
-        console.log('✅ Quiz iniciado con', this.preguntas.length, 'preguntas');
-    }
-    this.cargando = false;
-},
+        // Inicia el quiz según el modo elegido (general, ata, repaso).
+        // Determina la RPC correcta y navega al quiz si hay preguntas disponibles.
+        async comenzarQuiz(modo, ataId = null) {
+            this.cargando = true;
+            this.modoEstudio = modo === 'repaso' ? 'repaso' : 'general';
 
-// 🆕 BATCH: Función para volver al dashboard
-volverAlDashboard() {
-    console.log('🔙 Volviendo al dashboard');
-    this.vistaActual = 'dashboard';
-    this.preguntas = [];
-    this.indiceActual = 0;
-    this.resetStats();
-},
+            if (ataId) this.ataSeleccionado = ataId;
+
+            const entrada = modo === 'repaso' ? 'fallos'
+                          : ataId            ? parseInt(ataId)
+                          : 'nuevas';
+
+            await this.cargarPreguntas(entrada);
+
+            if (this.preguntas.length > 0) this.vistaActual = 'quiz';
+            this.cargando = false;
+        },
+
+        // Cancela el quiz activo y regresa al dashboard limpiando el estado del lote.
+        volverAlDashboard() {
+            this.vistaActual = 'dashboard';
+            this.preguntas = [];
+            this.indiceActual = 0;
+            this.resetStats();
+        },
 
 
 
@@ -439,23 +416,16 @@ volverAlDashboard() {
             }
         },
 
+        // Carga un lote de 25 preguntas desde Supabase según el modo y banco activos.
+        // Bifurca entre obtener_general y obtener_repaso según la Doble Validación.
         async cargarPreguntas(entrada) {
-            console.log('--- 🎯 INTENTO DE CARGA DE PREGUNTAS ---');
-            console.log('Estado actual:', { 
-                bancoSeleccionado: this.bancoSeleccionado,
-                modoEstudio: this.modoEstudio,
-                entrada: entrada,
-                modo: this.modo
-            });
-
             this.vistaActual = 'cargando';
             this.cargando = true;
             this.mensajeCarga = 'Preparando taller...';
 
-            // 🛡️ VALIDATION: Ensure a bank is selected
+            // Validación: asegurar que haya un banco seleccionado antes de llamar al backend
             if (!this.bancoSeleccionado) {
-                console.error('❌ No hay banco seleccionado');
-                this.showToast('Por favor, selecciona un banco primero', 'error');
+                console.error('No hay banco seleccionado');
                 this.showToast('Por favor, selecciona un banco primero', 'error');
                 this.vistaActual = 'inicio';
                 this.cargando = false;
@@ -468,52 +438,42 @@ volverAlDashboard() {
             try {
                 let rpcName, params;
 
-                // 🎯 DOBLE VALIDACIÓN: Bifurcación por Modo de Estudio
-        if (this.modoEstudio === 'repaso') {
-            rpcName = 'obtener_repaso';
-            params = { 
-                p_banco_id: this.bancoSeleccionado,
-                cantidad: 25
-            };
-        } else {
-            rpcName = 'obtener_general';
-            params = { 
-                p_banco_id: this.bancoSeleccionado,
-                p_ata_id: null,
-                cantidad: 25
-            };
-            // Si el usuario seleccionó un ATA específico
-            if (this.modo === 'ata') {
-                params.p_ata_id = parseInt(entrada);
-            }
-        }
+                // Bifurcación por Modo de Estudio (Doble Validación)
+                if (this.modoEstudio === 'repaso') {
+                    rpcName = 'obtener_repaso';
+                    params = {
+                        p_banco_id: this.bancoSeleccionado,
+                        cantidad: 25
+                    };
+                } else {
+                    rpcName = 'obtener_general';
+                    params = {
+                        p_banco_id: this.bancoSeleccionado,
+                        p_ata_id: null,
+                        cantidad: 25
+                    };
+                    // Si el usuario seleccionó un ATA específico, filtrar por él
+                    if (this.modo === 'ata') {
+                        params.p_ata_id = parseInt(entrada);
+                    }
+                }
 
-                console.log('📡 Enviando a RPC:', rpcName);
-                console.log('📦 Parámetros:', JSON.stringify(params, null, 2));
-                
                 const { data, error } = await sb.rpc(rpcName, params);
 
-                console.log('📥 Recibido del RPC:', { 
-                    data: data, 
-                    cantidad: data?.length || 0,
-                    error: error 
-                });
-
                 if (error) {
-                    console.error('❌ Error del backend:', error);
+                    console.error('Error del backend RPC:', error);
                     throw error;
                 }
 
-                // 🚫 MANEJO DE VACÍO: Diferentes estrategias según el modo
+                // Manejo de resultado vacío: estrategia diferente según el modo
                 if (!data || data.length === 0) {
                     if (this.modoEstudio === 'repaso') {
-                        // No hay fallos pendientes - AUTO-SWITCH a modo general
+                        // No hay fallos pendientes → auto-switch a modo general
                         alert('¡Excelente! No tienes fallos pendientes.');
                         this.modoEstudio = 'general';
-                        // Reintentar en modo general
                         return this.cargarPreguntas(entrada);
                     } else {
-                        // Modo general vacío - Todo maestrado
+                        // Modo general vacío → todo el banco está maestrado
                         alert('¡Increíble! Has completado todas las preguntas disponibles. Revisa tus fallos o resetea el progreso.');
                         this.volverAlMenu();
                         return;
@@ -540,8 +500,8 @@ volverAlDashboard() {
             this.bloqueado = true;
             this.seleccionada = letra;
 
-            // ✅ FIX MÓVIL: Liberar el foco del botón pulsado para evitar highlight residual
-            // en la siguiente pregunta cuando la misma letra aparece en la misma posición.
+            // Liberar el foco del botón pulsado para evitar highlight residual
+            // en la siguiente pregunta cuando la misma letra aparece en la misma posición (fix móvil).
             if (document.activeElement && document.activeElement.blur) {
                 document.activeElement.blur();
             }
@@ -552,28 +512,18 @@ volverAlDashboard() {
             // Soporta respuestas múltiples en BD, ej: "A,B" o "AB"
             const esCorrecta = correcta.includes(seleccion);
 
-            console.log('🔍 Validando:', { 
-                seleccion: seleccion, 
-                correctaDB: correcta, 
-                esCorrecta: esCorrecta,
-                preguntaID: this.preguntaActual.id
-            });
-
-            // 💾 2. PERSISTENCIA ROBUSTA (Fall-safes)
+            // 2. PERSISTENCIA ROBUSTA: guarda el intento en Supabase de forma no bloqueante.
+            // Si la red falla, el quiz continúa sin interrumpir la experiencia del usuario.
             try {
-                const uid = this.session?.user?.id || this.auth.user?.id; // 🆕 USER UNDEFINED FIX
-                
-                // Intentamos guardar, pero si falla no detenemos el quiz
+                const uid = this.session?.user?.id || this.auth.user?.id;
                 await sb.rpc('guardar_intento', {
                     p_pregunta_id: this.preguntaActual.id,
                     p_es_correcta: esCorrecta,
                     p_modo_estudio: this.modoEstudio,
-                    p_user_id: uid 
+                    p_user_id: uid
                 });
-                console.log('💾 Respuesta guardada en DB');
             } catch (e) {
-                console.error('⚠️ Error no bloqueante guardando respuesta:', e);
-                // RPC Error 404/500 ignorado para continuidad del usuario
+                console.error('Error no bloqueante al guardar respuesta:', e);
             }
 
             // 3. ACTUALIZACIÓN VISUAL (ESTADO)
@@ -595,29 +545,27 @@ volverAlDashboard() {
             }
         },
 
-        // 🆕 BATCH: Navegación dentro del lote (client-side)
+        // Navega a la siguiente pregunta del lote (client-side).
+        // Resetea estados visuales, aplica fix anti-ghost de imagen y baraja las opciones.
         siguientePregunta() {
-            // Reset visual states
             this.bloqueado = false;
             this.seleccionada = null;
             this.mostrarSiguiente = false;
-            this.imagenCargada = false; // 🆕 FIX GHOST: Ocultar imagen anterior inmediatamente
-            
-            // Navigate to next question
+            this.imagenCargada = false; // Ocultar imagen anterior inmediatamente (fix ghost image)
+
             this.indiceActual++;
-            
-            // 🎯 Check if batch is complete
+
+            // Si el lote terminó, finalizar la sesión
             if (this.indiceActual >= this.preguntas.length) {
                 this.finalizarSesion();
                 return;
             }
-            
-            // 🆕 FIX GHOST: Si la nueva pregunta NO tiene imagen, marcar como cargada
+
+            // Si la siguiente pregunta no tiene imagen, marcar como cargada de inmediato
             if (!this.preguntas[this.indiceActual]?.image_url) {
                 this.imagenCargada = true;
             }
-            
-            // Shuffle options for next question
+
             this.mezclarOpciones();
             this.guardarEstadoLocal();
         },
@@ -632,9 +580,11 @@ volverAlDashboard() {
         },
 
         // --- UTILIDADES Y AUXILIARES ---
+
+        // Baraja las opciones de la pregunta actual usando el algoritmo Fisher-Yates.
+        // Conserva la letra ORIGINAL de la BD (A, B, C, D) para validación directa.
+        // Los botones muestran la letra real sin re-mapeo visual para evitar falsos negativos.
         mezclarOpciones(retornar = false) {
-            // 1. Obtener opciones crudas FILTRANDO VACÍAS
-            // IMPORTANTE: Mantenemos la letra ORIGINAL de la DB (A,B,C,D)
             const raw = [
                 { letra: 'A', texto: this.preguntaActual.opcion_a },
                 { letra: 'B', texto: this.preguntaActual.opcion_b },
@@ -642,16 +592,12 @@ volverAlDashboard() {
                 { letra: 'D', texto: this.preguntaActual.opcion_d }
             ].filter(o => o.texto && o.texto.trim() !== '' && o.texto !== 'null');
 
-            // 2. Barajar directamente el array de objetos
             for (let i = raw.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [raw[i], raw[j]] = [raw[j], raw[i]];
             }
-            
-            // 3. Asignar directamente (Sin re-mapeo visual A,B,C,D)
-            // Esto significa que los botones mostrarán su letra real (ej: C, A, B)
-            this.opcionesActuales = raw;
 
+            this.opcionesActuales = raw;
             if (retornar) return raw;
         },
 
@@ -736,7 +682,10 @@ volverAlDashboard() {
             this.mostrarSiguiente = false;
         },
 
-        // 🆕 STATS BANCO: Carga total de preguntas y maestradas del banco activo
+        // Calcula las estadísticas de progreso del banco activo:
+        //   - totalPreguntasBanco: conteo exacto de preguntas en la BD.
+        //   - preguntasMaestradasBanco: total menos (pendientes general + pendientes repaso).
+        // Usa cantidad:9999 para obtener todos los registros pendientes sin límite de lote.
         async cargarStatsBanco(bancoId) {
             if (!bancoId) return;
             try {
@@ -745,11 +694,11 @@ volverAlDashboard() {
                     .from('preguntas')
                     .select('id', { count: 'exact', head: true })
                     .eq('banco_id', bancoId);
-                
+
                 if (errTotal) throw errTotal;
                 this.totalPreguntasBanco = total || 0;
 
-                // 2. Preguntas pendientes en modo general
+                // 2. Preguntas pendientes en modo general (no dominadas)
                 const { data: pendGen, error: errGen } = await sb.rpc('obtener_general', {
                     p_banco_id: bancoId,
                     p_ata_id: null,
@@ -757,25 +706,18 @@ volverAlDashboard() {
                 });
                 if (errGen) throw errGen;
 
-                // 3. Preguntas pendientes en modo repaso (las falladas que aún no han sido maestradas)
+                // 3. Preguntas en cuarentena (falladas aún no liberadas del repaso)
                 const { data: pendRep, error: errRep } = await sb.rpc('obtener_repaso', {
                     p_banco_id: bancoId,
                     cantidad: 9999
                 });
                 if (errRep) throw errRep;
-                
+
                 const cantPendientes = (pendGen?.length || 0) + (pendRep?.length || 0);
                 this.preguntasMaestradasBanco = this.totalPreguntasBanco - cantPendientes;
 
-                console.log('📊 Stats banco:', {
-                    total: this.totalPreguntasBanco,
-                    maestradas: this.preguntasMaestradasBanco,
-                    pendientesGeneral: pendGen?.length || 0,
-                    pendientesRepaso: pendRep?.length || 0,
-                    pendientesTotal: cantPendientes
-                });
             } catch (e) {
-                console.error('⚠️ Error cargando stats del banco:', e);
+                console.error('Error cargando estadísticas del banco:', e);
             }
         },
 

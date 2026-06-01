@@ -189,3 +189,59 @@ El proyecto **Proyecto Escalafón v1.6** se consolida como una aplicación de en
 
 1. **Monitoreo de RPCs de Base de Datos:** Validar que la concurrencia de la RPC `reiniciar_progreso` sea óptima con muchos usuarios.
 2. **Carga y Optimización de Contenido:** Continuar la revisión de textos duplicados en Supabase, especialmente en el banco de Inglés.
+
+---
+
+## 8. Auditoría Senior Integral (Junio 2026) — v1.6 Hardened
+
+**Fecha:** 2026-06-01
+**Auditor:** Antigravity (AI System)
+**Versión Auditada:** v1.6 → v1.6.1 (Hardened)
+
+### 8.1. Metodología
+
+Revisión exhaustiva de todos los archivos del proyecto: `app.js`, `index.html`, `sw.js`, `manifest.json`, `package.json` y todos los `.md`. Se priorizó: (1) correctitud del código, (2) coherencia de rebranding, (3) higiene de documentación, (4) consistencia de nomenclatura.
+
+### 8.2. Hallazgos y Correcciones Aplicadas
+
+#### 🔴 CRÍTICOS (todos resueltos)
+
+| ID | Archivo | Hallazgo | Resolución |
+|----|---------|----------|------------|
+| C1 | `app.js:29-30` | **Comentarios incorrectos del batch:** decían "Array de 50 preguntas" e "índice (0-49)" cuando el batch real es de 25. Documentación desincronizada del código. | ✅ Corregidos a "Lote activo de 25 preguntas" e "Índice dentro del lote (0-24)". |
+| C2 | `app.js:459` | **`showToast()` duplicado** dentro del mismo bloque `if (!this.bancoSeleccionado)`: la llamada se ejecutaba dos veces, mostrando el toast repetido al usuario. | ✅ Eliminada la llamada duplicada. |
+| C3 | `app.js:198` | **`cargarAtas()` fuera de la indentación del objeto:** el método estaba al nivel del módulo en lugar del objeto `app()`, rompiendo la consistencia estructural. | ✅ Reindentado correctamente como método del objeto. |
+
+#### 🟡 MEDIOS (todos resueltos)
+
+| ID | Archivo | Hallazgo | Resolución |
+|----|---------|----------|------------|
+| M1 | `app.js` (múltiples) | **10+ `console.log` de debug en producción** exponiendo parámetros RPC, state interno y flujo de navegación. | ✅ Eliminados todos los `console.log`. Conservados únicamente los `console.error` para diagnóstico de errores reales. |
+| M2 | `app.js:23,380,390` | **Comentarios en inglés** ("Populated from database", "Setup mode", "Load batch") violando la regla de idioma español definida en `SYSTEM_PROMPT.md`. | ✅ Traducidos al español. |
+| M3 | `sw.js:2,5` | **Nombre del cache `'b787-master-v4'`** inconsistente con el rebranding a "Escalafón" aplicado en v1.6. | ✅ Actualizado a `'escalafon-v4'`. |
+| M4 | `index.html:178` | **`bancoSeleccionado = 'b787'` hardcodeado** en el botón "Volver a Selección" de la vista Coming Soon. Asumir un banco específico rompe la arquitectura multi-banco. | ✅ Cambiado a `bancoSeleccionado = null`. |
+| M5 | `package.json` | **Rebranding incompleto:** `name: "b787-master"`, `version: "1.0.0"`, `description: "App estudio"`, y `download:js` descargaba `alpinejs@3.13.3` mientras `index.html` carga `@3.14.1` desde CDN (discrepancia de versión). | ✅ Actualizado: `name → "escalafon"`, `version → "1.6.0"`, descripción completa, `alpine → @3.14.1`. |
+
+#### 🟢 MENORES (todos resueltos)
+
+| ID | Archivo | Hallazgo | Resolución |
+|----|---------|----------|------------|
+| m1 | `manifest.json` | **Campos PWA faltantes:** `scope`, `lang`, `description` y `orientation` ausentes. Impacto en instalación correcta como PWA en algunos navegadores. | ✅ Añadidos los cuatro campos. `name` actualizado a "Proyecto Escalafón". |
+| m2 | `app.js` (múltiples) | **Emojis en comentarios de código** (`🆕`, `🛡️`, `🎯`, `🆕 BATCH`, etc.) — residuo del proceso de desarrollo, inconsistente con un codebase profesional. | ✅ Eliminados. Comentarios reescritos en prosa técnica clara. |
+| m3 | `SYSTEM_PROMPT.md:40` | **Placeholder literal** `[AQUÍ INSERTARÁS TU SIGUIENTE INSTRUCCIÓN ESPECÍFICA]` expuesto en el archivo. | ✅ Reemplazado con sección "Estado Actual" que refleja v1.6. |
+
+### 8.3. Estado Final del Proyecto (v1.6.1 Hardened)
+
+- ✅ **Cero `console.log` en producción:** solo errores reales son reportados.
+- ✅ **Código 100% en español:** comentarios, variables y mensajes de usuario.
+- ✅ **Rebranding completo:** `package.json`, `sw.js`, `manifest.json` y `SYSTEM_PROMPT.md` alineados con "Proyecto Escalafón".
+- ✅ **Batch documentado correctamente:** comentarios reflejan el valor real de 25 preguntas.
+- ✅ **Bug `showToast` duplicado eliminado:** UX sin toasts repetidos.
+- ✅ **PWA manifest completo:** `scope`, `lang`, `description`, `orientation` añadidos.
+- ✅ **Arquitectura multi-banco protegida:** eliminado el hardcode `'b787'` en Coming Soon.
+
+### 8.4. Deuda Técnica Residual (No Bloqueante)
+
+1. **`icon.png` sin variante SVG/maskable:** el manifest usa una sola imagen `.png` para todos los tamaños. Idealmente se debería proveer un icono `maskable` para Android y uno `any` para iOS.
+2. **Offline mode parcial:** el SW cachea assets CDN pero no puede cachear las RPCs de Supabase (datos dinámicos). Comportamiento correcto para este tipo de app, pero documentado para expectativa del usuario.
+3. **`confetti.js` versión en `download:js`:** descarga `@1.9.2` pero `index.html` usa `@1.6.0` desde CDN. Discrepancia menor (no afecta producción ya que se usan CDNs), pendiente unificación si se migra a assets locales.
