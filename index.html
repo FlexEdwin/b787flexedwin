@@ -351,7 +351,7 @@
             </div>
 
             <!-- Empty State (Fallback por si falla carga) -->
-            <div x-show="!preguntaActual && !cargando" class="text-center py-20">
+            <div x-show="!preguntaActual && !cargando && (preguntas.length === 0 || indiceActual < preguntas.length)" class="text-center py-20">
                 <div class="text-6xl mb-4">🤔</div>
                 <h3 class="text-xl text-white font-bold mb-2">No se encontraron preguntas</h3>
                 <p class="text-slate-400 mb-6">Intenta con otro capítulo o modo.</p>

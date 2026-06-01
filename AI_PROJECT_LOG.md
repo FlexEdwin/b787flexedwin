@@ -2,10 +2,29 @@
 
 ## Estado Actual
 
-- **Versión:** v1.6 (Estable)
+- **Versión:** v1.7 (Estable)
 - **Progreso:** ~100% completado.
-- **Funcionalidad:** Login completo con foco en invitados, Multi-Banco (B787 / Inglés / AMOS / Regulaciones), Quiz por lotes de 25 preguntas, Dashboard adaptativo con botón de reinicio de progreso, Gráficas de rendimiento, Visualización de preguntas pendientes reales, Modo Repaso, Fix de imágenes cargadas (Ghost Image), Modal FAQ/Ayuda y PWA funcional.
+- **Funcionalidad:** Login completo con foco en invitados, Multi-Banco (B787 / Inglés / AMOS / Regulaciones), Quiz por lotes de 25 preguntas, Dashboard adaptativo con botón de reinicio de progreso, Gráficas de rendimiento, Visualización de preguntas pendientes reales, Modo Repaso con liberación tras 1 acierto, Fix de imágenes cargadas (Ghost Image), Modal FAQ/Ayuda y PWA funcional.
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-06-01] - Ajuste de Repaso de Fallos y Fix de Pantalla Vacía (v1.7) 🚀
+
+**REQUERIMIENTOS:**
+1. Modificar la regla de Repaso de Fallos: que respondiendo correctamente 1 sola vez en repaso la pregunta salga de repaso y vuelva al Entrenamiento General (antes requería 2 aciertos consecutivos en repaso y la pregunta desaparecía para siempre).
+2. Eliminar el parpadeo de la pantalla "No se encontraron preguntas" durante 1 segundo al terminar la pregunta 25 de un lote.
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- **Base de Datos (Supabase SQL)**:
+  - Se añadieron `DROP FUNCTION IF EXISTS` para limpiar las firmas previas de las funciones.
+  - Se actualizaron las funciones `obtener_general` y `obtener_repaso` para que las preguntas en repaso salgan de cuarentena tras recibir 1 respuesta correcta en modo `repaso`, y para asegurar que la maestría (2 aciertos consecutivos) dependa únicamente del modo `general`.
+- **index.html**:
+  - Se actualizó el `x-show` del Empty State para ocultarse si el lote del quiz ya finalizó (`indiceActual >= preguntas.length`).
+- **src/js/app.js**:
+  - Se modificó la función `finalizarSesion()` para establecer temporalmente la bandera `cargando = true` mientras se cargan las estadísticas en segundo plano, previniendo visualizaciones inválidas.
+- **PROJECT_CONTEXT.md** & **PROJECT_BRIEF.md**:
+  - Se actualizaron las reglas de negocio sobre la Lógica de Aprendizaje (Doble Validación) indicando la regla del único acierto de liberación en repaso.
 
 ---
 

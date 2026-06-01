@@ -61,7 +61,8 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 ### 4.2 Lógica de Aprendizaje
 
 - **Algoritmo**: Doble Validación (General vs Repaso).
-- **Criterio de Éxito**: Graduación de preguntas tras 2 aciertos consecutivos.
+- **Criterio de Graduación (General)**: Graduación/retiro definitivo tras 2 aciertos consecutivos en modo `general`.
+- **Criterio de Liberación (Repaso)**: Una pregunta fallada entra en cuarentena (Repaso) y se libera (vuelve a General) tras responderse correctamente 1 sola vez en modo `repaso`.
 
 ---
 

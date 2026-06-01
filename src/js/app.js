@@ -667,11 +667,13 @@ volverAlDashboard() {
         },
 
         async finalizarSesion() {
+            this.cargando = true;
             // 🆕 Cargar stats actualizadas del banco antes de mostrar resultados
             try {
                 await this.cargarStatsBanco(this.bancoSeleccionado);
             } catch(e) { console.error('Stats refresh error:', e); }
 
+            this.cargando = false;
             this.vistaActual = 'fin';
             localStorage.removeItem('escalafon_sesion');
             this.sesionGuardada = false;

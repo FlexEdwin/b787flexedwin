@@ -104,8 +104,8 @@ Para soportar el algoritmo de Doble Validación, la tabla `respuestas` debe regi
 
 **Cálculo de Estados (Vía RPC):**
 
-- **Estado 'Retirada'**: `COUNT(consecutive_correct_general) >= 2`
-- **Estado 'En Repaso'**: La última respuesta en General fue FALLO, y `COUNT(consecutive_correct_repaso) < 2`.
+- **Estado 'Retirada'** (Maestrada): `COUNT(consecutive_correct_general) >= 2`. El usuario debe acertar la pregunta 2 veces consecutivas en modo `general` para que sea retirada del pool general de estudio.
+- **Estado 'En Repaso'** (Cuarentena): La última respuesta en General fue FALLO, y no se ha respondido correctamente en Repaso todavía (es decir, r.modo_estudio = 'repaso' y r.es_correcta = true después de dicho fallo). Responderla bien una vez la libera del repaso y la devuelve al entrenamiento general.
 
 ---
 
