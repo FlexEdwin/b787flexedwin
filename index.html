@@ -205,18 +205,32 @@
             <!-- Grid de Modos -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- 1. General -->
-                <button @click="comenzarQuiz('general')" 
-                        class="relative overflow-hidden group bg-gradient-to-br from-blue-600/20 to-slate-800 border border-blue-500/30 hover:border-blue-400 p-6 rounded-2xl text-left transition-all hover:shadow-lg hover:shadow-blue-900/20">
-                    <div class="text-4xl mb-4">📚</div>
-                    <h3 class="text-xl font-bold text-white mb-2">Entrenamiento General</h3>
-                    <p class="text-slate-400 text-sm">25 preguntas aleatorias.</p>
-                </button>
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl relative flex flex-col justify-between">
+                    <div>
+                        <div class="text-4xl mb-4">📚</div>
+                        <h3 class="text-xl font-bold text-white mb-2">Entrenamiento General</h3>
+                        <p class="text-slate-400 text-sm mb-4">Preguntas aleatorias.</p>
+                    </div>
+                    <div class="space-y-3">
+                        <select x-model.number="cantidadPreguntas" 
+                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white text-sm outline-none">
+                            <option value="25">25 preguntas</option>
+                            <option value="50">50 preguntas</option>
+                            <option value="100">100 preguntas</option>
+                        </select>
+                        <button @click="comenzarQuiz('general')" 
+                                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg text-sm transition-all shadow-lg shadow-blue-900/20">
+                            Iniciar Entrenamiento
+                        </button>
+                    </div>
+                </div>
 
                 <!-- 2. Capítulos/Temas (SOLO SI HAY ATAS) -->
-                <div x-show="atas.length > 0" class="bg-slate-800 border border-slate-700 p-6 rounded-2xl relative">
-                    <div class="text-4xl mb-4">⚙️</div>
-                    <h3 class="text-xl font-bold text-white mb-4" x-text="'Por ' + labelCategoria"></h3>
-                    
+                <div x-show="atas.length > 0" class="bg-slate-800 border border-slate-700 p-6 rounded-2xl relative flex flex-col justify-between">
+                    <div>
+                        <div class="text-4xl mb-4">⚙️</div>
+                        <h3 class="text-xl font-bold text-white mb-4" x-text="'Por ' + labelCategoria"></h3>
+                    </div>
                     <div class="space-y-3">
                         <select x-model="ataSeleccionado" 
                                 class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white text-sm outline-none">
@@ -224,6 +238,12 @@
                             <template x-for="ata in atas" :key="ata.id">
                                 <option :value="ata.id" x-text="ata.nombre"></option>
                             </template>
+                        </select>
+                        <select x-model.number="cantidadPreguntas" 
+                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white text-sm outline-none">
+                            <option value="25">25 preguntas</option>
+                            <option value="50">50 preguntas</option>
+                            <option value="100">100 preguntas</option>
                         </select>
                         <button @click="comenzarQuiz('ata', ataSeleccionado)"
                                 :disabled="!ataSeleccionado"
@@ -238,7 +258,7 @@
                         class="relative overflow-hidden group bg-slate-800 border border-slate-700 hover:border-red-500/50 p-6 rounded-2xl text-left transition-all">
                     <div class="text-4xl mb-4">🚑</div>
                     <h3 class="text-xl font-bold text-white mb-2">Repaso Fallos</h3>
-                    <p class="text-slate-400 text-sm">Vuelve a intentar tus errores.</p>
+                    <p class="text-slate-400 text-sm">Repasa todos tus errores pendientes.</p>
                 </button>
             </div>
 
@@ -454,8 +474,8 @@
                 </div>
                 <div class="border-t border-slate-700"></div>
                 <div>
-                    <h3 class="text-sm font-bold text-blue-400 mb-1">¿Por qué me salen solo 25 preguntas?</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Para optimizar tu estudio, las preguntas se cargan en lotes de 25. Es más efectivo estudiar en sesiones cortas y frecuentes que en sesiones largas. Al terminar un lote puedes iniciar otro.</p>
+                    <h3 class="text-sm font-bold text-blue-400 mb-1">¿Por qué me salen 25, 50 o 100 preguntas?</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Para optimizar tu estudio, puedes elegir la cantidad de preguntas por sesión. Es más efectivo estudiar en sesiones cortas y frecuentes que en sesiones largas. Al terminar un lote puedes iniciar otro.</p>
                 </div>
                 <div class="border-t border-slate-700"></div>
                 <div>

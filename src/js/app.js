@@ -25,8 +25,9 @@ function app() {
         // --- ESTADO DEL QUIZ ---
         modo: '',
         modoEstudio: 'general', // 'general' o 'repaso' — Lógica de Doble Validación
-        preguntas: [],           // Lote activo de 25 preguntas
-        indiceActual: 0,         // Índice dentro del lote (0-24)
+        cantidadPreguntas: 25,   // Cantidad de preguntas por sesión (25, 50 o 100). Configurable desde el Dashboard.
+        preguntas: [],           // Lote activo de preguntas (cantidad variable)
+        indiceActual: 0,         // Índice dentro del lote
         bloqueado: false,
         seleccionada: null,      // Letra seleccionada visualmente (A, B, C, D)
         ordenOpciones: ['A', 'B', 'C', 'D'], // Mapeo: Posición Visual → Letra real en BD
@@ -77,7 +78,8 @@ function app() {
         // Progreso legible del lote actual para mostrar en la barra superior del quiz
         get progresoLote() {
             if (!this.preguntas.length) return 'Sin preguntas';
-            return `Pregunta ${this.indiceActual + 1} de ${this.preguntas.length}`;
+            const actual = Math.min(this.indiceActual + 1, this.preguntas.length);
+            return `Pregunta ${actual} de ${this.preguntas.length}`;
         },
         get progresoPorcentaje() {
             return this.preguntas.length ? ((this.indiceActual + 1) / this.preguntas.length) * 100 : 0;
@@ -443,14 +445,14 @@ function app() {
                     rpcName = 'obtener_repaso';
                     params = {
                         p_banco_id: this.bancoSeleccionado,
-                        cantidad: 25
+                        cantidad: 9999 // Sin límite: traer TODAS las preguntas falladas pendientes
                     };
                 } else {
                     rpcName = 'obtener_general';
                     params = {
                         p_banco_id: this.bancoSeleccionado,
                         p_ata_id: null,
-                        cantidad: 25
+                        cantidad: this.cantidadPreguntas
                     };
                     // Si el usuario seleccionó un ATA específico, filtrar por él
                     if (this.modo === 'ata') {
@@ -553,13 +555,13 @@ function app() {
             this.mostrarSiguiente = false;
             this.imagenCargada = false; // Ocultar imagen anterior inmediatamente (fix ghost image)
 
-            this.indiceActual++;
-
-            // Si el lote terminó, finalizar la sesión
-            if (this.indiceActual >= this.preguntas.length) {
+            // Verificar fin de lote ANTES de incrementar para evitar mostrar "Pregunta 26 de 25"
+            if (this.indiceActual + 1 >= this.preguntas.length) {
                 this.finalizarSesion();
                 return;
             }
+
+            this.indiceActual++;
 
             // Si la siguiente pregunta no tiene imagen, marcar como cargada de inmediato
             if (!this.preguntas[this.indiceActual]?.image_url) {
