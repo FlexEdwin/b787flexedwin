@@ -555,13 +555,13 @@ function app() {
             this.mostrarSiguiente = false;
             this.imagenCargada = false; // Ocultar imagen anterior inmediatamente (fix ghost image)
 
-            // Verificar fin de lote ANTES de incrementar para evitar mostrar "Pregunta 26 de 25"
-            if (this.indiceActual + 1 >= this.preguntas.length) {
+            this.indiceActual++;
+
+            // Si el lote terminó, finalizar la sesión
+            if (this.indiceActual >= this.preguntas.length) {
                 this.finalizarSesion();
                 return;
             }
-
-            this.indiceActual++;
 
             // Si la siguiente pregunta no tiene imagen, marcar como cargada de inmediato
             if (!this.preguntas[this.indiceActual]?.image_url) {

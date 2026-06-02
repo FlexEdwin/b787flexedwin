@@ -294,7 +294,7 @@
             <!-- Barra de Progreso -->
             <div class="w-full bg-slate-800 h-2 rounded-full mb-8 overflow-hidden">
                 <div class="bg-blue-500 h-full transition-all duration-500 ease-out"
-                     :style="`width: ${((indiceActual + 1) / preguntas.length) * 100}%`"></div>
+                     :style="`width: ${Math.min(((indiceActual + 1) / preguntas.length) * 100, 100)}%`"></div>
             </div>
 
             <!-- Tarjeta de Pregunta -->
