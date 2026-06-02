@@ -245,3 +245,31 @@ Revisión exhaustiva de todos los archivos del proyecto: `app.js`, `index.html`,
 1. **`icon.png` sin variante SVG/maskable:** el manifest usa una sola imagen `.png` para todos los tamaños. Idealmente se debería proveer un icono `maskable` para Android y uno `any` para iOS.
 2. **Offline mode parcial:** el SW cachea assets CDN pero no puede cachear las RPCs de Supabase (datos dinámicos). Comportamiento correcto para este tipo de app, pero documentado para expectativa del usuario.
 3. **`confetti.js` versión en `download:js`:** descarga `@1.9.2` pero `index.html` usa `@1.6.0` desde CDN. Discrepancia menor (no afecta producción ya que se usan CDNs), pendiente unificación si se migra a assets locales.
+
+---
+
+## 9. Auditoría de Mejoras del Quiz (Junio 2026) — v1.8
+
+**Fecha:** 2026-06-02
+**Auditor:** Antigravity (AI System)
+**Versión Auditada:** v1.6.1 → v1.8
+
+### 9.1. Hallazgos y Mejoras Implementadas
+
+#### 🔴 CRÍTICOS (todos resueltos)
+
+| ID | Archivo | Hallazgo | Resolución |
+|----|---------|----------|------------|
+| C1 | `app.js` | **Contador visual excedido al finalizar lote.** Al responder la última pregunta de un lote, el sistema mostraba brevemente "Pregunta 26 de 25" antes de pasar al resumen. | ✅ La validación de fin de lote en `siguientePregunta()` fue movida antes del incremento de índice. Adicionalmente, se añadió un `Math.min()` al getter `progresoLote`. |
+
+#### 🟡 MEDIOS (todos resueltos)
+
+| ID | Archivo | Hallazgo | Resolución |
+|----|---------|----------|------------|
+| M1 | `app.js`, `index.html` | **Falta de flexibilidad en la cantidad de preguntas.** El lote estaba fijo en 25 preguntas, limitando a usuarios que querían sesiones más largas. | ✅ Se añadió la variable reactiva `cantidadPreguntas` y selectores en el UI. Ahora el lote en modo General/Categoría puede ser 25, 50 o 100. |
+| M2 | `app.js` | **Límite artificial en Repaso de Fallos.** El modo de repaso de fallos solo traía 25 preguntas, ocultando otros errores si se tenían más fallos acumulados. | ✅ Se modificó la RPC invocada para modo repaso para que solicite `cantidad: 9999`, permitiendo un repaso verdaderamente ilimitado y completo de todo el rezago. |
+| M3 | `index.html` | **Textos desactualizados en FAQ.** Las explicaciones en la ayuda seguían mencionando que solo salen 25 preguntas. | ✅ Los textos del FAQ fueron reescritos para reflejar la capacidad de elegir 25, 50 o 100 preguntas por sesión. |
+
+### 9.2. Validación de Arquitectura de Persistencia
+
+Se auditaron las peticiones de respuesta para confirmar la "Persistencia Inmediata". Se comprobó que el diseño original que utiliza la RPC `guardar_intento` es completamente atómico e inmediato (Línea ~519 de `app.js`). No es necesario finalizar el lote para que los errores o aciertos se sincronicen en la base de datos de Supabase. El estado local y de la nube está perfectamente acoplado y funciona correctamente.

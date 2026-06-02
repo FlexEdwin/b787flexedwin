@@ -36,7 +36,7 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 ### C. Gestión de Contenidos & UX ✅ **COMPLETADO (v1.0)**
 
 - **Ingesta**: CSV/Importación directa a Supabase.
-- **Batch Loading**: ✅ Implementada carga por lotes (ahora optimizada a 25 preguntas para sesiones de estudio efectivas) reduciendo latencia.
+- **Batch Loading**: ✅ Implementada carga por lotes (configurable por el usuario: 25, 50, 100 preguntas) reduciendo latencia.
 - **Offline-Ready**: ✅ Service Worker y LocalStorage configurados para tolerancia a fallos de red.
 
 ### D. Estabilización y Mejoras de Experiencia (v1.6) ✅ **COMPLETADO**
@@ -51,13 +51,20 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 ### E. Hardening y Limpieza de Código (v1.6.1) ✅ **COMPLETADO**
 
 - **Eliminación de `console.log` en producción**: ✅ Removidos 10+ logs de debug que exponían parámetros de RPC y estado interno. Solo se conservan `console.error` para errores reales.
-- **Corrección de comentarios batch**: ✅ Documentación interna ahora refleja correctamente el lote de 25 preguntas (antes decía 50).
+- **Corrección de comentarios batch**: ✅ Documentación interna ahora refleja correctamente el lote variable (antes decía siempre 50 o 25).
 - **Bug `showToast` duplicado**: ✅ Eliminada la llamada duplicada que mostraba el toast dos veces al usuario.
 - **Reindentación de `cargarAtas()`**: ✅ Método reintegrado correctamente al objeto `app()`.
 - **Rebranding completo**: ✅ `package.json`, `sw.js` (cache), `manifest.json` actualizados a "Proyecto Escalafón" v1.6.0.
 - **Fix hardcode multi-banco**: ✅ Eliminado `bancoSeleccionado = 'b787'` hardcodeado en vista Coming Soon.
 - **Manifest PWA reforzado**: ✅ Añadidos `scope`, `lang`, `description` y `orientation`.
 - **Sincronización de dependencias**: ✅ `download:js` en `package.json` ahora descarga `alpinejs@3.14.1` igual que el CDN en `index.html`.
+
+### F. Control de Estudio Personalizado (v1.8) ✅ **COMPLETADO**
+
+- **Selector de Cantidad de Preguntas**: ✅ Selector en dashboard para elegir lotes de 25, 50 o 100 preguntas.
+- **Repaso Ilimitado**: ✅ El modo "Repaso Fallos" ahora trae TODAS las preguntas falladas pendientes (`cantidad: 9999`) sin restricciones.
+- **Persistencia Inmediata**: ✅ Validado que el avance (aciertos/errores) se guarda de manera atómica al instante, previniendo pérdida de historial si se suspende la prueba.
+- **Corrección de UI de Lote**: ✅ Solucionado el bug visual donde se mostraba "Pregunta 26 de 25" moviendo la validación y añadiendo protecciones al getter visual.
 
 ---
 

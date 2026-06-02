@@ -2,10 +2,30 @@
 
 ## Estado Actual
 
-- **Versión:** v1.7 (Estable)
+- **Versión:** v1.8 (Estable)
 - **Progreso:** ~100% completado.
-- **Funcionalidad:** Login completo con foco en invitados, Multi-Banco (B787 / Inglés / AMOS / Regulaciones), Quiz por lotes de 25 preguntas, Dashboard adaptativo con botón de reinicio de progreso, Gráficas de rendimiento, Visualización de preguntas pendientes reales, Modo Repaso con liberación tras 1 acierto, Fix de imágenes cargadas (Ghost Image), Modal FAQ/Ayuda y PWA funcional.
+- **Funcionalidad:** Login completo, Multi-Banco (B787 / Inglés / AMOS / Regulaciones), Selector de cantidad de preguntas por sesión (25/50/100), Repaso de Fallos ilimitado (muestra todos los pendientes), Persistencia inmediata y automática de aciertos/fallos, Fix contador visual (Pregunta 26 de 25).
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-06-02] - Mejoras del Motor de Quiz (v1.8) 🛠️
+
+**REQUERIMIENTOS:**
+1. Selector de cantidad de preguntas (25/50/100) en el Dashboard.
+2. Repaso de Fallos sin límite (mostrar todas las falladas, `cantidad: 9999`).
+3. Persistencia inmediata de respuestas sin necesidad de terminar el lote (confirmado como ya existente).
+4. Fix "Pregunta 26 de 25" al terminar lote.
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- **index.html**:
+  - Se añadieron selectores desplegables `<select>` en el Dashboard (Entrenamiento General y Por Categoría).
+  - Se actualizó el texto del botón "Repaso Fallos" y la respuesta correspondiente en el modal FAQ.
+- **src/js/app.js**:
+  - Añadido el estado `cantidadPreguntas: 25` (vinculado con `v-model` en HTML).
+  - Actualizado `cargarPreguntas(entrada)` para que en modo repaso solicite 9999 y en modo general pase `this.cantidadPreguntas`.
+  - Fix en `siguientePregunta()`: La validación de fin de lote (`indiceActual + 1 >= preguntas.length`) se mueve a ANTES de incrementar el contador para evitar mostrar índices fuera de rango ("26 de 25").
+  - Capa de protección adicional en getter `progresoLote` utilizando `Math.min()`.
 
 ---
 

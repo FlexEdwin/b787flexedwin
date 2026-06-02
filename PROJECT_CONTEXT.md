@@ -109,12 +109,12 @@ Para soportar el algoritmo de Doble Validación, la tabla `respuestas` debe regi
 
 ---
 
-## 4. Estado Actual del Proyecto (v1.6 Estable)
+## 4. Estado Actual del Proyecto (v1.8 Estable)
 
 ### ✅ Arquitectura & Core
 
 - **Navegación 3-Niveles**: `Inicio (Selección)` -> `Dashboard (Config)` -> `Quiz (Estudio)`.
-- **Carga Eficiente**: Implementado Batch Loading (25 preguntas/request) reduciendo latencia.
+- **Carga Eficiente**: Implementado Batch Loading variable (25/50/100 preguntas por request) y Repaso Ilimitado reduciendo latencia y mejorando control de estudio.
 - **Validación Robusta**: Algoritmo "Direct-Check" (sin mapeo visual) que elimina falsos negativos.
 - **Persistencia**: Manejo de sesión resiliente con recuperación vía `localStorage` utilizando prefijos dedicados (`escalafon_sesion`).
 
@@ -148,7 +148,7 @@ Plataforma de entrenamiento de alto rendimiento para certificaciones técnicas.
 2. **Validación**: Al hacer click, se compara `opcion.letra` vs `db.correcta` directamente. Soporta múltiples letras correctas (ej. `A,B`).
 3. **Persistencia**: Cada respuesta se envía a Supabase (`rpc/guardar_intento`) con el ID del usuario. Si falla la red, el quiz continúa, priorizando la experiencia de estudio.
 
-### Lógica de Progreso y Estadísticas del Banco (v1.6)
+### Lógica de Progreso y Estadísticas del Banco (v1.8)
 
 1. **Total de Preguntas del Banco**: Cantidad de preguntas asociadas al `banco_id` activo.
 2. **Preguntas por Aprender (Pendientes)**: Suma de las preguntas devueltas por `obtener_general(9999)` (no dominadas) y `obtener_repaso(9999)` (en repaso por fallos).

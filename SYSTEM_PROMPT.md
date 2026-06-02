@@ -26,7 +26,7 @@ Lee este contexto antes de escribir una sola línea de código.
 
 - **Navegación:** `vistaActual` ('login' -> 'inicio' -> 'dashboard' -> 'quiz' -> 'fin' / 'cargando').
 - **Contexto:** `bancoSeleccionado` (UUID), `modoEstudio` ('general' | 'repaso').
-- **Quiz Engine:** Carga por lotes (Batch Loading de 25 preguntas). Navegación cliente (`indiceActual`, `siguientePregunta()`).
+- **Quiz Engine:** Carga por lotes (Batch Loading de cantidad variable: 25/50/100 o 9999 para repaso). Navegación cliente (`indiceActual`, `siguientePregunta()`).
 - **Sesión local:** Guardada en localStorage bajo la clave `escalafon_sesion` para poder reanudar de inmediato si se suspende la pestaña.
 
 ## 4. Reglas de Desarrollo
@@ -37,6 +37,6 @@ Lee este contexto antes de escribir una sola línea de código.
 
 ## 5. Estado Actual
 
-**Versión:** v1.6 — Estable  
-**Última auditoría:** 2026-06-01  
+**Versión:** v1.8 — Estable  
+**Última auditoría:** 2026-06-02  
 Todos los módulos funcionales. Prioridad actual: estabilidad y contenido (ver `PROJECT_AUDIT_REPORT.md`).
