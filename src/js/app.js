@@ -28,6 +28,9 @@ function app() {
         cantidadPreguntas: 25,   // Cantidad de preguntas por sesión (25, 50 o 100). Configurable desde el Dashboard.
         preguntas: [],           // Lote activo de preguntas (cantidad variable)
         indiceActual: 0,         // Índice dentro del lote
+        umbralMaestria: 2,       // Cantidad de respuestas correctas seguidas para maestrar (1, 2 o 3)
+        totalFavoritasBanco: 0,  // Conteo de favoritas del banco activo
+        idsFavoritas: new Set(), // IDs de preguntas favoritas de la sesión actual
         bloqueado: false,
         seleccionada: null,      // Letra seleccionada visualmente (A, B, C, D)
         ordenOpciones: ['A', 'B', 'C', 'D'], // Mapeo: Posición Visual → Letra real en BD
@@ -51,7 +54,12 @@ function app() {
             return this.preguntas[this.indiceActual]; // Getter dinámico: apunta al índice actual del lote
         },
         get modoTexto() {
-            const map = { 'nuevas': 'Estudio General', 'ata': 'Por Categoría', 'fallos': 'Repaso de Fallos' };
+            const map = { 
+                'nuevas': 'Estudio General', 
+                'ata': 'Por Categoría', 
+                'fallos': 'Repaso de Fallos', 
+                'favoritas': 'Preguntas Favoritas' 
+            };
             const modoDisplay = this.modoEstudio === 'repaso' ? ' (Repaso)' : ' (General)';
             return (map[this.modo] || 'Estudio') + modoDisplay;
         },
@@ -121,6 +129,10 @@ function app() {
         async initApp() {
             this.checkLocalStorage();
 
+            // Restaurar configuración del umbral de maestría
+            const savedUmbral = localStorage.getItem('escalafon_umbral_maestria');
+            this.umbralMaestria = savedUmbral ? parseInt(savedUmbral, 10) : 2;
+
             // 1. Verificar Sesión
             const { data: { session } } = await sb.auth.getSession();
             
@@ -138,6 +150,13 @@ function app() {
                     
                     if (bancoGuardado) {
                         this.bancoSeleccionado = bancoGuardado;
+
+                        // Cargar ATAs y estadísticas del banco restaurado en paralelo.
+                        // Sin esto, el Dashboard muestra stats en cero tras un refresco.
+                        await Promise.all([
+                            this.cargarAtas(bancoGuardado),
+                            this.cargarStatsBanco(bancoGuardado)
+                        ]);
                         
                         if (vistaGuardada === 'dashboard') {
                             this.vistaActual = 'dashboard';
@@ -371,8 +390,9 @@ function app() {
 
             if (ataId) this.ataSeleccionado = ataId;
 
-            const entrada = modo === 'repaso' ? 'fallos'
-                          : ataId            ? parseInt(ataId)
+            const entrada = modo === 'repaso'    ? 'fallos'
+                          : modo === 'favoritas' ? 'favoritas'
+                          : ataId               ? parseInt(ataId)
                           : 'nuevas';
 
             await this.cargarPreguntas(entrada);
@@ -408,6 +428,9 @@ function app() {
                         this.ordenOpciones = saved.ordenOpciones || ['A','B','C','D'];
                         this.mezclarOpciones();
                     }
+                    if (saved.idsFavoritas) {
+                        this.idsFavoritas = new Set(saved.idsFavoritas);
+                    }
                     this.vistaActual = 'quiz';
                 } else {
                     this.vistaActual = 'inicio'; // Fallback si no hay preguntas válidas
@@ -434,14 +457,20 @@ function app() {
                 return;
             }
 
-            this.modo = (entrada === 'nuevas' || entrada === 'fallos') ? entrada : 'ata';
+            this.modo = (entrada === 'nuevas' || entrada === 'fallos' || entrada === 'favoritas') ? entrada : 'ata';
             this.resetStats();
 
             try {
                 let rpcName, params;
 
-                // Bifurcación por Modo de Estudio (Doble Validación)
-                if (this.modoEstudio === 'repaso') {
+                // Bifurcación por Modo de Estudio (Doble Validación / Favoritas)
+                if (this.modo === 'favoritas') {
+                    rpcName = 'obtener_favoritas';
+                    params = {
+                        p_banco_id: this.bancoSeleccionado,
+                        cantidad: 9999 // Sin límite: traer todas las favoritas
+                    };
+                } else if (this.modoEstudio === 'repaso') {
                     rpcName = 'obtener_repaso';
                     params = {
                         p_banco_id: this.bancoSeleccionado,
@@ -452,7 +481,8 @@ function app() {
                     params = {
                         p_banco_id: this.bancoSeleccionado,
                         p_ata_id: null,
-                        cantidad: this.cantidadPreguntas
+                        cantidad: this.cantidadPreguntas,
+                        p_umbral_maestria: this.umbralMaestria
                     };
                     // Si el usuario seleccionó un ATA específico, filtrar por él
                     if (this.modo === 'ata') {
@@ -469,7 +499,11 @@ function app() {
 
                 // Manejo de resultado vacío: estrategia diferente según el modo
                 if (!data || data.length === 0) {
-                    if (this.modoEstudio === 'repaso') {
+                    if (this.modo === 'favoritas') {
+                        alert('No tienes preguntas favoritas guardadas en este banco.');
+                        this.volverAlMenu();
+                        return;
+                    } else if (this.modoEstudio === 'repaso') {
                         // No hay fallos pendientes → auto-switch a modo general
                         alert('¡Excelente! No tienes fallos pendientes.');
                         this.modoEstudio = 'general';
@@ -481,6 +515,13 @@ function app() {
                         return;
                     }
                 }
+
+                // Obtener las favoritas para marcar las estrellas en el quiz
+                const { data: favs } = await sb
+                    .from('favorita')
+                    .select('pregunta_id, preguntas!inner(banco_id)')
+                    .eq('preguntas.banco_id', this.bancoSeleccionado);
+                this.idsFavoritas = new Set(favs ? favs.map(f => f.pregunta_id) : []);
 
                 this.preguntas = data;
                 this.indiceActual = 0;
@@ -610,7 +651,8 @@ function app() {
                 stats: this.stats,
                 modo: this.modo,
                 ordenOpciones: this.ordenOpciones, // Guardamos el orden actual (retrocompatibilidad)
-                opcionesActuales: this.opcionesActuales // Guardamos opciones mezcladas
+                opcionesActuales: this.opcionesActuales, // Guardamos opciones mezcladas
+                idsFavoritas: Array.from(this.idsFavoritas) // Guardamos como array
             }));
         },
 
@@ -704,7 +746,8 @@ function app() {
                 const { data: pendGen, error: errGen } = await sb.rpc('obtener_general', {
                     p_banco_id: bancoId,
                     p_ata_id: null,
-                    cantidad: 9999
+                    cantidad: 9999,
+                    p_umbral_maestria: this.umbralMaestria
                 });
                 if (errGen) throw errGen;
 
@@ -718,8 +761,83 @@ function app() {
                 const cantPendientes = (pendGen?.length || 0) + (pendRep?.length || 0);
                 this.preguntasMaestradasBanco = this.totalPreguntasBanco - cantPendientes;
 
+                // 4. Conteo de favoritas del banco activo
+                const { count: countFavs, error: errFavs } = await sb
+                    .from('favorita')
+                    .select('pregunta_id, preguntas!inner(banco_id)', { count: 'exact', head: true })
+                    .eq('preguntas.banco_id', bancoId);
+
+                this.totalFavoritasBanco = errFavs ? 0 : (countFavs || 0);
+
             } catch (e) {
                 console.error('Error cargando estadísticas del banco:', e);
+            }
+        },
+
+        esFavorita(preguntaId) {
+            return this.idsFavoritas.has(preguntaId);
+        },
+
+        async toggleFavorita(preguntaId) {
+            const uid = this.session?.user?.id || this.auth.user?.id;
+            if (!uid) return;
+
+            try {
+                if (this.idsFavoritas.has(preguntaId)) {
+                    // Quitar de favoritas
+                    const { error } = await sb
+                        .from('favorita')
+                        .delete()
+                        .eq('pregunta_id', preguntaId)
+                        .eq('user_id', uid);
+
+                    if (error) throw error;
+                    this.idsFavoritas.delete(preguntaId);
+                    this.totalFavoritasBanco = Math.max(0, this.totalFavoritasBanco - 1);
+                    this.showToast('Eliminada de favoritas', 'info');
+                } else {
+                    // Añadir a favoritas
+                    const { error } = await sb
+                        .from('favorita')
+                        .insert({ pregunta_id: preguntaId, user_id: uid });
+
+                    if (error) throw error;
+                    this.idsFavoritas.add(preguntaId);
+                    this.totalFavoritasBanco++;
+                    this.showToast('Agregada a favoritas', 'info');
+                }
+                this.guardarEstadoLocal();
+            } catch (e) {
+                console.error('Error al actualizar favoritas:', e);
+                this.showToast('Error al actualizar favoritas', 'error');
+            }
+        },
+
+        async marcarComoExcluida(preguntaId) {
+            const confirmacion = confirm("¿Estás seguro de que deseas excluir esta pregunta? No volverá a aparecer en tus sesiones de estudio.");
+            if (!confirmacion) return;
+
+            const uid = this.session?.user?.id || this.auth.user?.id;
+            if (!uid) return;
+
+            try {
+                const { error } = await sb
+                    .from('exclusion')
+                    .insert({ pregunta_id: preguntaId, user_id: uid });
+
+                if (error) throw error;
+
+                // Remover de favoritas si estaba guardada
+                if (this.idsFavoritas.has(preguntaId)) {
+                    this.idsFavoritas.delete(preguntaId);
+                    this.totalFavoritasBanco = Math.max(0, this.totalFavoritasBanco - 1);
+                }
+
+                this.showToast('Pregunta excluida permanentemente', 'info');
+                this.siguientePregunta();
+            } catch (e) {
+                console.error('Error al excluir pregunta:', e);
+                this.showToast('Error al excluir pregunta', 'error');
             }
         },
 

@@ -82,10 +82,11 @@ Basado en las llamadas RPC y consultas `sb.from()` en `src/js/app.js`, este es e
 
 El backend delega lógica compleja a funciones de base de datos para seguridad y encapsulamiento:
 
-- `reiniciar_progreso(p_banco_id, p_ata_id)`: Reinicia el progreso del usuario borrando sus registros de `respuestas` (que es lo que realmente controla la maestría en `obtener_general`) y reseteando `progreso.respondida_bien_seguido`. Filtra por banco activo (`p_banco_id`) y opcionalmente por ATA.
-- `repasar_falladas(filtro_ata_id)`: Devuelve preguntas falladas previamente.
-- `estudiar_preguntas(filtro_ata_id)`: Devuelve preguntas nuevas o aleatorias.
-- `registrar_respuesta(p_pregunta_id, es_correcta)`: Guarda el intento y actualiza stats.
+- `reiniciar_progreso(p_banco_id, p_ata_id)`: Reinicia el progreso del usuario borrando sus registros de `respuestas` (que es lo que realmente controla la maestría en `obtener_general`), borrando también sus registros de `exclusion` ("Ya me la sé") para que las preguntas excluidas vuelvan al pool de estudio, y reseteando `progreso.respondida_bien_seguido`. Las preguntas marcadas como favoritas (`favorita`) **no** se borran. Filtra por banco activo (`p_banco_id`) y opcionalmente por ATA.
+- `obtener_general(p_banco_id, p_ata_id, cantidad, p_umbral_maestria)`: Devuelve preguntas aleatorias excluyendo las dominadas (maestradas según el umbral configurado), excluidas ("Ya me la sé") y en repaso (cuarentena).
+- `obtener_repaso(p_banco_id, cantidad)`: Devuelve preguntas falladas que se encuentran en cuarentena (repaso), excluyendo las marcadas con "Ya me la sé".
+- `obtener_favoritas(p_banco_id, cantidad)`: Devuelve todas las preguntas marcadas como favoritas del banco activo para el usuario actual.
+- `guardar_intento(p_pregunta_id, p_es_correcta, p_modo_estudio, p_user_id)`: Guarda el intento de respuesta del usuario en la tabla `respuestas`.
 
 ## Esquema de Base de Datos (Snapshot)
 
@@ -97,14 +98,18 @@ El backend delega lógica compleja a funciones de base de datos para seguridad y
 | preguntas | Acceso público a preguntas               | SELECT    | {anon,authenticated} |
 | atas      | allow_anonymous_read_atas                | SELECT    | {anon}               |
 | atas      | allow_authenticated_read_atas            | SELECT    | {authenticated}      |
+| favorita  | Permitir todo a usuarios en sus favoritas | ALL       | {public}             |
+| exclusion | Permitir todo a usuarios en sus exclusiones| ALL     | {public}             |
 
 ### Reglas de Base de Datos (Respuestas)
 
-Para soportar el algoritmo de Doble Validación, la tabla `respuestas` debe registrar el `modo_estudio` en el que se respondió ('general' o 'repaso').
+Para soportar el algoritmo de repetición espaciada y doble validación, la tabla `respuestas` registra el `modo_estudio` en el que se respondió ('general' o 'repaso').
 
 **Cálculo de Estados (Vía RPC):**
 
-- **Estado 'Retirada'** (Maestrada): `COUNT(consecutive_correct_general) >= 2`. El usuario debe acertar la pregunta 2 veces consecutivas en modo `general` para que sea retirada del pool general de estudio.
+- **Estado 'Excluida'** (Maestría Instantánea): Pregunta registrada en la tabla `exclusion`. Nunca volverá a aparecer en las sesiones de estudio general ni de repaso.
+- **Estado 'Favorita'**: Pregunta registrada en la tabla `favorita`. Permite al alumno estudiar este set por separado. Es persistente y no se borra al reiniciar progreso.
+- **Estado 'Retirada'** (Maestrada): `COUNT(consecutive_correct_general) >= p_umbral_maestria`. El usuario debe acertar la pregunta consecutivamente las veces indicadas en su configuración de maestría (1, 2 o 3 veces seguidas) para retirarla del pool general de estudio.
 - **Estado 'En Repaso'** (Cuarentena): La última respuesta en General fue FALLO, y no se ha respondido correctamente en Repaso todavía (es decir, r.modo_estudio = 'repaso' y r.es_correcta = true después de dicho fallo). Responderla bien una vez la libera del repaso y la devuelve al entrenamiento general.
 
 ---

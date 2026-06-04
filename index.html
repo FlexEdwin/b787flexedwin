@@ -202,8 +202,32 @@
                 </div>
             </div>
 
+            <!-- Ajustes de Estudio -->
+            <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Ajustes del Algoritmo
+                    </h3>
+                    <p class="text-xs text-slate-400 font-medium">Configura las reglas del motor de repetición espaciada</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-slate-300 font-bold whitespace-nowrap">Repeticiones para dominar:</span>
+                    <select x-model.number="umbralMaestria" 
+                            @change="localStorage.setItem('escalafon_umbral_maestria', umbralMaestria); cargarStatsBanco(bancoSeleccionado)"
+                            class="bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold">
+                        <option value="1">1 acierto (Rápido)</option>
+                        <option value="2">2 aciertos (Recomendado)</option>
+                        <option value="3">3 aciertos (Intensivo)</option>
+                    </select>
+                </div>
+            </div>
+
             <!-- Grid de Modos -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- 1. General -->
                 <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl relative flex flex-col justify-between">
                     <div>
@@ -217,6 +241,13 @@
                             <option value="25">25 preguntas</option>
                             <option value="50">50 preguntas</option>
                             <option value="100">100 preguntas</option>
+                            <option value="200">200 preguntas</option>
+                            <option value="300">300 preguntas</option>
+                            <option value="400">400 preguntas</option>
+                            <option value="500">500 preguntas</option>
+                            <option value="600">600 preguntas</option>
+                            <option value="700">700 preguntas</option>
+                            <option value="800">800 preguntas</option>
                         </select>
                         <button @click="comenzarQuiz('general')" 
                                 class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg text-sm transition-all shadow-lg shadow-blue-900/20">
@@ -244,6 +275,13 @@
                             <option value="25">25 preguntas</option>
                             <option value="50">50 preguntas</option>
                             <option value="100">100 preguntas</option>
+                            <option value="200">200 preguntas</option>
+                            <option value="300">300 preguntas</option>
+                            <option value="400">400 preguntas</option>
+                            <option value="500">500 preguntas</option>
+                            <option value="600">600 preguntas</option>
+                            <option value="700">700 preguntas</option>
+                            <option value="800">800 preguntas</option>
                         </select>
                         <button @click="comenzarQuiz('ata', ataSeleccionado)"
                                 :disabled="!ataSeleccionado"
@@ -254,12 +292,37 @@
                 </div>
 
                 <!-- 3. Repaso -->
-                <button @click="comenzarQuiz('repaso')" 
-                        class="relative overflow-hidden group bg-slate-800 border border-slate-700 hover:border-red-500/50 p-6 rounded-2xl text-left transition-all">
-                    <div class="text-4xl mb-4">🚑</div>
-                    <h3 class="text-xl font-bold text-white mb-2">Repaso Fallos</h3>
-                    <p class="text-slate-400 text-sm">Repasa todos tus errores pendientes.</p>
-                </button>
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl relative flex flex-col justify-between">
+                    <div>
+                        <div class="text-4xl mb-4">🚑</div>
+                        <h3 class="text-xl font-bold text-white mb-2">Repaso Fallos</h3>
+                        <p class="text-slate-400 text-sm mb-4">Repasa todos tus errores pendientes.</p>
+                    </div>
+                    <button @click="comenzarQuiz('repaso')" 
+                            class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 rounded-lg text-sm transition-all border border-slate-600 hover:border-slate-500">
+                        Repasar Errores
+                    </button>
+                </div>
+
+                <!-- 4. Favoritas -->
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl relative flex flex-col justify-between">
+                    <div>
+                        <div class="text-4xl mb-4">⭐</div>
+                        <h3 class="text-xl font-bold text-white mb-2">Preguntas Favoritas</h3>
+                        <p class="text-slate-400 text-sm mb-4">Estudia exclusivamente tus preguntas guardadas.</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-slate-900/50 p-2.5 rounded-lg text-center border border-slate-750 font-mono">
+                            <span class="text-base font-black text-yellow-400" x-text="totalFavoritasBanco"></span>
+                            <span class="text-xs text-slate-400 font-sans font-bold"> favoritas</span>
+                        </div>
+                        <button @click="comenzarQuiz('favoritas')" 
+                                :disabled="totalFavoritasBanco === 0"
+                                class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:hover:bg-blue-600 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg text-sm transition-all shadow-lg shadow-blue-900/20">
+                            Estudiar Favoritas
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Botón Reiniciar Progreso -->
@@ -301,11 +364,31 @@
             <div class="bg-slate-800 rounded-2xl p-6 sm:p-10 border border-slate-700 shadow-2xl relative"
                  x-show="preguntaActual">
                 
-                <!-- Badge del ATA -->
-                <div class="mb-6">
-                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-slate-700 text-slate-300 border border-slate-600">
-                        <span x-text="preguntaActual?.numero || '###'"></span>
-                    </span>
+                <!-- Controles Superiores de la Tarjeta (Favoritas y Exclusión) -->
+                <div class="flex items-center justify-between mb-6">
+                    <!-- Izquierda: Número de Pregunta + Estrella de Favorito -->
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-slate-700 text-slate-300 border border-slate-600">
+                            <span x-text="preguntaActual?.numero || '###'"></span>
+                        </span>
+                        <!-- Botón Favorito -->
+                        <button @click="toggleFavorita(preguntaActual.id)" 
+                                class="p-1.5 rounded-lg text-slate-400 hover:text-yellow-400 transition-colors focus:outline-none"
+                                :title="esFavorita(preguntaActual.id) ? 'Quitar de favoritas' : 'Marcar como favorita'">
+                            <svg class="w-6 h-6" :class="esFavorita(preguntaActual.id) ? 'text-yellow-400 fill-current' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Derecha: Botón Maestría Instantánea ("Ya me la sé") -->
+                    <button @click="marcarComoExcluida(preguntaActual.id)"
+                            class="text-xs font-bold text-slate-400 hover:text-green-400 bg-slate-700/50 hover:bg-green-500/10 px-3 py-2 rounded-lg border border-slate-600 hover:border-green-500/30 transition-all flex items-center gap-1.5 focus:outline-none"
+                            title="No volver a mostrar esta pregunta en las sesiones">
+                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Ya me la sé</span>
+                    </button>
                 </div>
 
                 <!-- Texto Pregunta -->
@@ -474,18 +557,28 @@
                 </div>
                 <div class="border-t border-slate-700"></div>
                 <div>
-                    <h3 class="text-sm font-bold text-blue-400 mb-1">¿Por qué me salen 25, 50 o 100 preguntas?</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Para optimizar tu estudio, puedes elegir la cantidad de preguntas por sesión. Es más efectivo estudiar en sesiones cortas y frecuentes que en sesiones largas. Al terminar un lote puedes iniciar otro.</p>
+                    <h3 class="text-sm font-bold text-blue-400 mb-1">¿Por qué puedo elegir desde 25 hasta 800 preguntas?</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Para optimizar tu sesión de estudio, puedes elegir el tamaño del lote. Sesiones cortas (25-50) son ideales para móvil en desplazamientos rápidos, mientras que lotes grandes (100-800) permiten simulacros de examen completos o repasos intensivos en escritorio.</p>
                 </div>
                 <div class="border-t border-slate-700"></div>
                 <div>
-                    <h3 class="text-sm font-bold text-blue-400 mb-1">¿Siempre me van a salir las mismas 25 preguntas?</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">No. El sistema selecciona preguntas que aún no has dominado. Una vez que respondes correctamente una pregunta dos veces consecutivas, se "retira" y no volverá a aparecer en el modo general.</p>
+                    <h3 class="text-sm font-bold text-blue-400 mb-1">¿Siempre me van a salir las mismas preguntas?</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">No. El sistema selecciona preguntas que aún no has dominado. Una vez que respondes correctamente una pregunta las veces configuradas en tu umbral de maestría (1, 2 o 3 veces seguidas), se considera dominada y no volverá a aparecer en el modo general.</p>
                 </div>
                 <div class="border-t border-slate-700"></div>
                 <div>
-                    <h3 class="text-sm font-bold text-blue-400 mb-1">¿Por qué me sale la misma pregunta más de una vez?</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">El sistema utiliza <strong class="text-slate-300">repetición espaciada</strong>: necesitas acertar una pregunta al menos <strong class="text-slate-300">2 veces consecutivas</strong> para que se considere dominada. Esto refuerza la memoria a largo plazo.</p>
+                    <h3 class="text-sm font-bold text-blue-400 mb-1">¿Por qué se repiten las preguntas?</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Utilizamos <strong class="text-slate-300">repetición espaciada</strong>. Por defecto, necesitas acertar una pregunta <strong class="text-slate-300">2 veces consecutivas</strong> para dominarla. Puedes cambiar esto en los "Ajustes del Algoritmo" del Dashboard a 1 vez (rápido) o 3 veces (intensivo).</p>
+                </div>
+                <div class="border-t border-slate-700"></div>
+                <div>
+                    <h3 class="text-sm font-bold text-blue-400 mb-1">¿Qué hace el botón "Ya me la sé"?</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Si dominas por completo una pregunta y deseas descartarla de inmediato (sin esperar a cumplir los aciertos del algoritmo), haz clic en "Ya me la sé" en la esquina superior derecha del quiz. Tras confirmar, la pregunta se excluirá permanentemente de tus sesiones.</p>
+                </div>
+                <div class="border-t border-slate-700"></div>
+                <div>
+                    <h3 class="text-sm font-bold text-blue-400 mb-1">¿Cómo funcionan las "Preguntas Favoritas"?</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Si tienes dificultad con una pregunta específica y deseas repasarla con frecuencia, pulsa el icono de la estrella junto al número de pregunta. Podrás estudiarlas por separado en la sección "Preguntas Favoritas" del Dashboard. Esta lista es permanente y no se borra al reiniciar tu progreso.</p>
                 </div>
                 <div class="border-t border-slate-700"></div>
                 <div>

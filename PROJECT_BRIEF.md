@@ -41,7 +41,7 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 
 ### D. Estabilización y Mejoras de Experiencia (v1.6) ✅ **COMPLETADO**
 
-- **Reinicio de Progreso**: ✅ Añadido botón interactivo y confirmable para reiniciar progreso del banco activo en la base de datos (Supabase RPC `reiniciar_progreso`).
+- **Reinicio de Progreso**: El usuario puede limpiar su progreso del banco actual llamando a `reiniciar_progreso(p_banco_id, p_ata_id)` vía RPC. El RPC borra: (a) los registros de la tabla `respuestas` para ese banco (que es lo que `obtener_general` consulta para determinar maestría), y (b) los registros de la tabla `exclusion` para ese banco, devolviendo las preguntas excluidas ("Ya me la sé") al pool general. Adicionalmente resetea `progreso.respondida_bien_seguido`. Los registros de `favorita` **no** se borran. Esto devuelve todas las preguntas (incluidas las excluidas) al pool general de estudio, manteniendo el set de favoritas intacto.
 - **Fix "Imagen Fantasma" (Ghost Image)**: ✅ Oculta inmediatamente la imagen de la pregunta anterior durante las transiciones de carga, mostrando un skeleton loader en conexiones lentas.
 - **Indicador de Preguntas Pendientes**: ✅ Se reemplazó el sistema de "racha" en la pantalla de resultados por una métrica real: "X preguntas por aprender de Y", calculado restando las preguntas devueltas en modo general y repaso del total del banco.
 - **Ayuda Integrada (FAQ)**: ✅ Modal flotante interactivo con respuestas rápidas sobre cómo funciona la doble validación, sincronización de progreso, y reinicio.
@@ -65,6 +65,14 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 - **Repaso Ilimitado**: ✅ El modo "Repaso Fallos" ahora trae TODAS las preguntas falladas pendientes (`cantidad: 9999`) sin restricciones.
 - **Persistencia Inmediata**: ✅ Validado que el avance (aciertos/errores) se guarda de manera atómica al instante, previniendo pérdida de historial si se suspende la prueba.
 - **Corrección de UI de Lote**: ✅ Solucionado el bug visual donde se mostraba "Pregunta 26 de 25" moviendo la validación y añadiendo protecciones al getter visual.
+
+### G. Funcionalidades de Repetición y Gestión Personalizada (v1.9) ✅ **COMPLETADO**
+
+- **Selector de Cantidad Ampliado**: ✅ Se extendieron las opciones de cantidad por sesión a: 200, 300, 400, 500, 600, 700 y 800 preguntas.
+- **Umbral de Maestría Configurable**: ✅ El alumno puede seleccionar que se repita la pregunta 1 vez, 2 veces (recomendado) o 3 veces para considerarla aprendida.
+- **Maestría Instantánea ("Ya me la sé")**: ✅ Se añadió el botón para excluir permanentemente preguntas del pool de estudio con cartel de confirmación para evitar exclusiones accidentales.
+- **Preguntas Favoritas**: ✅ Se implementó un sistema de marcación de favoritas (estrella) con estudio completo e ilimitado (se cargan todas las favoritas de corrido) y opción de desmarcar en caliente.
+- **Persistencia en Reinicio**: ✅ Reiniciar el progreso conserva intactas las preguntas favoritas. Las exclusiones de "Ya me la sé" **sí se borran** en el reinicio, permitiendo que esas preguntas vuelvan a aparecer en el pool de estudio general.
 
 ---
 

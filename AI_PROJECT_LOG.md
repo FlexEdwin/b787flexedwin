@@ -2,10 +2,61 @@
 
 ## Estado Actual
 
-- **Versión:** v1.8 (Estable)
+- **Versión:** v1.9.1 (Hotfix)
 - **Progreso:** ~100% completado.
-- **Funcionalidad:** Login completo, Multi-Banco (B787 / Inglés / AMOS / Regulaciones), Selector de cantidad de preguntas por sesión (25/50/100), Repaso de Fallos ilimitado (muestra todos los pendientes), Persistencia inmediata y automática de aciertos/fallos, Fix contador visual (Pregunta 26 de 25).
+- **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones se limpian (preguntas vuelven al pool) pero las favoritas se conservan.
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-06-04] - Hotfix: Favoritas y Reinicio de Exclusiones (v1.9.1) 🔧
+
+**REQUERIMIENTOS:**
+1. Corregir el bug por el cual "Estudiar Favoritas" cargaba todo el banco en lugar de únicamente las preguntas favoritas.
+2. Modificar `reiniciar_progreso` para que al reiniciar el progreso se borren también las exclusiones ("Ya me la sé"), devolviendo esas preguntas al pool general. Las favoritas se conservan intactas.
+
+**DIAGNÓSTICO DEL BUG DE FAVORITAS:**
+El error se encontraba en la función client-side `comenzarQuiz(modo, ataId)` de `src/js/app.js`. La variable `entrada` se calculaba con:
+```javascript
+const entrada = modo === 'repaso' ? 'fallos'
+              : ataId            ? parseInt(ataId)
+              : 'nuevas';
+```
+Cuando `modo === 'favoritas'`, ninguna condición lo capturaba, por lo que la evaluación retornaba `'nuevas'`. Esto causaba que `cargarPreguntas('nuevas')` invocara la RPC `obtener_general` en lugar de `obtener_favoritas`, cargando todo el banco.
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- **src/js/app.js**:
+  - Añadido `modo === 'favoritas' ? 'favoritas'` como rama explícita en el ternario de `entrada` dentro de `comenzarQuiz`, antes de la evaluación de `ataId`. La cadena queda: `repaso → fallos` | `favoritas → favoritas` | `ataId → parseInt` | default → `nuevas`.
+- **Base de Datos (Supabase SQL)** *(acción manual requerida)*:
+  - Actualizar la función `reiniciar_progreso` para añadir un `DELETE FROM exclusion` filtrado por banco y usuario, además del `DELETE FROM respuestas` existente. Ver el SQL completo en el plan de implementación v1.9.1.
+
+**DOCUMENTACIÓN ACTUALIZADA:**
+- `PROJECT_CONTEXT.md`: Descripción del RPC `reiniciar_progreso` actualizada para reflejar el borrado de `exclusion`.
+- `PROJECT_BRIEF.md`: Regla de "Persistencia en Reinicio" (sección G) corregida: exclusiones sí se borran, favoritas no.
+- `PROJECT_AUDIT_REPORT.md`: Nuevos hallazgos registrados en sección 11.
+
+---
+
+
+
+**REQUERIMIENTOS:**
+1. Ampliar el selector de cantidad de preguntas hasta 800 (25-50-100-200-300-400-500-600-700-800).
+2. Hacer configurable el umbral de maestría (1, 2 o 3 aciertos consecutivos) para retirar una pregunta.
+3. Añadir botón "Ya me la sé" (Maestría Instantánea) en el quiz con confirmación previa para no volver a mostrar la pregunta.
+4. Crear sistema de "Preguntas Favoritas" (estrella en quiz, modo de estudio dedicado en Dashboard que carga todas las favoritas, desmarcado en caliente y persistencia al reiniciar progreso).
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- **index.html**:
+  - Se añadió un panel de "Ajustes de Estudio" en el Dashboard para el umbral de maestría (vinculado con `v-model` a `umbralMaestria`).
+  - Se actualizaron los selectores `<select>` de cantidad agregando las opciones hasta 800.
+  - Se añadió la tarjeta "Preguntas Favoritas" en el grid del Dashboard (adaptando el grid a 4 columnas).
+  - Se agregaron los botones de Favorito (estrella SVG interactiva) y "Ya me la sé" en la cabecera de la tarjeta de pregunta del Quiz.
+  - Se actualizó el modal FAQ agregando aclaraciones del umbral de maestría, favoritos y exclusiones.
+- **src/js/app.js**:
+  - Se añadieron estados globals: `umbralMaestria` (se inicializa y persiste en `localStorage`), `totalFavoritasBanco` y `idsFavoritas` (Set).
+  - Se actualizó `cargarStatsBanco()` para que pida favoritas e incluya `p_umbral_maestria` al llamar a `obtener_general`.
+  - Se modificó `cargarPreguntas()` para soportar la carga del modo `favoritas` llamando a la nueva RPC `obtener_favoritas`, y para obtener en caliente el set de favoritas de la sesión.
+  - Se implementaron los métodos `esFavorita()`, `toggleFavorita()` (eliminando/agregando a la tabla `favorita` y actualizando UI/localStorage) y `marcarComoExcluida()` (muestra diálogo de confirmación, inserta en `exclusion` de Supabase y avanza a la siguiente pregunta).
 
 ---
 
