@@ -2,10 +2,29 @@
 
 ## Estado Actual
 
-- **Versión:** v1.9.1 (Hotfix)
+- **Versión:** v1.9.2 (Feature)
 - **Progreso:** ~100% completado.
-- **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones se limpian (preguntas vuelven al pool) pero las favoritas se conservan.
+- **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones se limpian (preguntas vuelven al pool) pero las favoritas se conservan. Botón "Ver Respuesta" para consultar la respuesta correcta en caliente sin responder y avanzar sin penalización ni alterar estadísticas.
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-06-05] - Feature: Botón "Ver Respuesta" sin penalización (v1.9.2) 👁️
+
+**REQUERIMIENTOS:**
+1. Agregar un botón de "Ver Respuesta" que permita al usuario ver la respuesta correcta de forma inmediata sin registrar un intento en Supabase (sin marcar como correcta/incorrecta o sumarse a repaso de fallos).
+2. Permitir que el usuario avance de inmediato al hacer clic en un botón "Continuar" que sustituye a "Siguiente".
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- **src/js/app.js**:
+  - Se añadió la variable de estado `modoVerRespuesta` iniciada en `false`.
+  - Se implementó la función `verRespuesta()` para bloquear los botones del quiz y activar el resaltado de la opción correcta, estableciendo `modoVerRespuesta = true`.
+  - Se resetea `modoVerRespuesta = false` al avanzar de pregunta en `siguientePregunta()` y al limpiar estadísticas en `resetStats()`.
+- **index.html**:
+  - Se agregó el botón `👁 Ver Respuesta` (icono de ojo morado) en el encabezado de la tarjeta de preguntas, visible solo si el usuario no ha contestado y no ha activado la vista previa de respuesta.
+  - Se actualizó el botón inferior "Siguiente" para mostrar "Continuar" y cambiar a color morado cuando `modoVerRespuesta` está activo, permitiendo un flujo de avance limpio sin alterar estadísticas.
+- **sw.js**:
+  - Se incrementó el identificador del caché a `escalafon-v6` para invalidar el almacenamiento en caché del navegador y forzar la recarga del archivo `app.js` modificado.
 
 ---
 

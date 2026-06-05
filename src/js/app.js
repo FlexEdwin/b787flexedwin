@@ -32,6 +32,7 @@ function app() {
         totalFavoritasBanco: 0,  // Conteo de favoritas del banco activo
         idsFavoritas: new Set(), // IDs de preguntas favoritas de la sesión actual
         bloqueado: false,
+        modoVerRespuesta: false, // true cuando el usuario consultó la respuesta sin responder (sin penalizar)
         seleccionada: null,      // Letra seleccionada visualmente (A, B, C, D)
         ordenOpciones: ['A', 'B', 'C', 'D'], // Mapeo: Posición Visual → Letra real en BD
         opcionesActuales: [],    // Opciones barajadas estáticas para evitar re-render
@@ -401,6 +402,16 @@ function app() {
             this.cargando = false;
         },
 
+        // Muestra la respuesta correcta de la pregunta actual SIN registrar intento ni penalizar.
+        // Permite al usuario decidir si marcar como favorita, excluir o simplemente continuar.
+        verRespuesta() {
+            if (this.bloqueado) return;
+            this.modoVerRespuesta = true;
+            this.bloqueado = true;        // bloquea los botones de opción para evitar respuesta posterior
+            this.mostrarSiguiente = true; // activa el botón Continuar
+            // No se llama guardar_intento → pregunta no entra en repaso ni cuenta en stats
+        },
+
         // Cancela el quiz activo y regresa al dashboard limpiando el estado del lote.
         volverAlDashboard() {
             this.vistaActual = 'dashboard';
@@ -594,6 +605,7 @@ function app() {
             this.bloqueado = false;
             this.seleccionada = null;
             this.mostrarSiguiente = false;
+            this.modoVerRespuesta = false; // limpiar modo vista al avanzar
             this.imagenCargada = false; // Ocultar imagen anterior inmediatamente (fix ghost image)
 
             this.indiceActual++;
@@ -724,6 +736,7 @@ function app() {
             this.bloqueado = false;
             this.seleccionada = null;
             this.mostrarSiguiente = false;
+            this.modoVerRespuesta = false;
         },
 
         // Calcula las estadísticas de progreso del banco activo:

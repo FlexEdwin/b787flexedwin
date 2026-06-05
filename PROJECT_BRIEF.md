@@ -74,6 +74,11 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 - **Preguntas Favoritas**: ✅ Se implementó un sistema de marcación de favoritas (estrella) con estudio completo e ilimitado (se cargan todas las favoritas de corrido) y opción de desmarcar en caliente.
 - **Persistencia en Reinicio**: ✅ Reiniciar el progreso conserva intactas las preguntas favoritas. Las exclusiones de "Ya me la sé" **sí se borran** en el reinicio, permitiendo que esas preguntas vuelvan a aparecer en el pool de estudio general.
 
+### H. Botón de Visualización Sin Penalización (v1.9.2) ✅ **COMPLETADO**
+
+- **Ver Respuesta en Caliente**: ✅ Botón en forma de ojo (`👁 Ver Respuesta`) que permite al alumno ver cuál es la opción correcta sin verse obligado a responderla y sin penalizar sus estadísticas de estudio (no se suma a repaso de fallos, ni se marca como correcta/incorrecta).
+- **Flujo de Continuación**: ✅ El botón inferior del Quiz cambia a un botón morado "Continuar" que le permite saltar de manera limpia a la siguiente pregunta del lote sin alterar el progreso acumulado en la sesión.
+
 ---
 
 ## 4. Reglas de Negocio (v2.0 Refactor)

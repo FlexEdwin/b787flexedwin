@@ -1035,6 +1035,10 @@ video {
   border-color: rgb(30 41 59 / var(--tw-border-opacity, 1));
 }
 
+.border-purple-500\/20 {
+  border-color: rgb(168 85 247 / 0.2);
+}
+
 .bg-blue-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(59 130 246 / var(--tw-bg-opacity, 1));
@@ -1108,6 +1112,15 @@ video {
 
 .bg-slate-900\/90 {
   background-color: rgb(15 23 42 / 0.9);
+}
+
+.bg-purple-500\/10 {
+  background-color: rgb(168 85 247 / 0.1);
+}
+
+.bg-purple-700 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(126 34 206 / var(--tw-bg-opacity, 1));
 }
 
 .bg-gradient-to-br {
@@ -1448,6 +1461,15 @@ video {
   color: rgb(250 204 21 / var(--tw-text-opacity, 1));
 }
 
+.text-purple-400 {
+  --tw-text-opacity: 1;
+  color: rgb(192 132 252 / var(--tw-text-opacity, 1));
+}
+
+.text-purple-400\/80 {
+  color: rgb(192 132 252 / 0.8);
+}
+
 .underline {
   text-decoration-line: underline;
 }
@@ -1499,6 +1521,11 @@ video {
 
 .shadow-slate-900\/50 {
   --tw-shadow-color: rgb(15 23 42 / 0.5);
+  --tw-shadow: var(--tw-shadow-colored);
+}
+
+.shadow-purple-900\/20 {
+  --tw-shadow-color: rgb(88 28 135 / 0.2);
   --tw-shadow: var(--tw-shadow-colored);
 }
 
@@ -1604,6 +1631,10 @@ video {
   border-color: rgb(71 85 105 / var(--tw-border-opacity, 1));
 }
 
+.hover\:border-purple-500\/30:hover {
+  border-color: rgb(168 85 247 / 0.3);
+}
+
 .hover\:bg-blue-500:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(59 130 246 / var(--tw-bg-opacity, 1));
@@ -1627,6 +1658,15 @@ video {
   background-color: rgb(51 65 85 / 0.5);
 }
 
+.hover\:bg-purple-500\/10:hover {
+  background-color: rgb(168 85 247 / 0.1);
+}
+
+.hover\:bg-purple-600:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(147 51 234 / var(--tw-bg-opacity, 1));
+}
+
 .hover\:text-green-400:hover {
   --tw-text-opacity: 1;
   color: rgb(74 222 128 / var(--tw-text-opacity, 1));
@@ -1645,6 +1685,11 @@ video {
 .hover\:text-yellow-400:hover {
   --tw-text-opacity: 1;
   color: rgb(250 204 21 / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-purple-400:hover {
+  --tw-text-opacity: 1;
+  color: rgb(192 132 252 / var(--tw-text-opacity, 1));
 }
 
 .hover\:underline:hover {

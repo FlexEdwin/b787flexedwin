@@ -380,15 +380,29 @@
                             </svg>
                         </button>
                     </div>
-                    <!-- Derecha: Botón Maestría Instantánea ("Ya me la sé") -->
-                    <button @click="marcarComoExcluida(preguntaActual.id)"
-                            class="text-xs font-bold text-slate-400 hover:text-green-400 bg-slate-700/50 hover:bg-green-500/10 px-3 py-2 rounded-lg border border-slate-600 hover:border-green-500/30 transition-all flex items-center gap-1.5 focus:outline-none"
-                            title="No volver a mostrar esta pregunta en las sesiones">
-                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span>Ya me la sé</span>
-                    </button>
+                    <!-- Derecha: Ver Respuesta + Ya me la sé -->
+                    <div class="flex items-center gap-2">
+                        <!-- Botón Ver Respuesta: muestra la correcta sin penalizar. Solo visible antes de responder. -->
+                        <button x-show="!bloqueado"
+                                @click="verRespuesta()"
+                                class="text-xs font-bold text-slate-400 hover:text-purple-400 bg-slate-700/50 hover:bg-purple-500/10 px-3 py-2 rounded-lg border border-slate-600 hover:border-purple-500/30 transition-all flex items-center gap-1.5 focus:outline-none"
+                                title="Ver la respuesta correcta sin penalizar esta pregunta">
+                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <span>Ver Respuesta</span>
+                        </button>
+                        <!-- Botón Maestría Instantánea ("Ya me la sé") -->
+                        <button @click="marcarComoExcluida(preguntaActual.id)"
+                                class="text-xs font-bold text-slate-400 hover:text-green-400 bg-slate-700/50 hover:bg-green-500/10 px-3 py-2 rounded-lg border border-slate-600 hover:border-green-500/30 transition-all flex items-center gap-1.5 focus:outline-none"
+                                title="No volver a mostrar esta pregunta en las sesiones">
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Ya me la sé</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Texto Pregunta -->
@@ -443,13 +457,26 @@
                     </template>
                 </div>
 
-                <!-- Botón Siguiente (Flotante o fijo abajo) -->
-                <div class="mt-8 pt-6 border-t border-slate-700/50 flex justify-end" x-show="mostrarSiguiente">
-                    <button @click="siguientePregunta()" 
-                            class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-blue-900/20 transform transition hover:-translate-y-1 flex items-center gap-2">
-                        <span>Siguiente</span>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
-                    </button>
+                <!-- Aviso cuando se usó "Ver Respuesta" + Botón Siguiente -->
+                <div class="mt-8 pt-6 border-t border-slate-700/50" x-show="mostrarSiguiente">
+                    <!-- Badge informativo en modo Ver Respuesta -->
+                    <div x-show="modoVerRespuesta"
+                         class="flex items-center gap-2 text-xs text-purple-400/80 bg-purple-500/10 border border-purple-500/20 rounded-lg px-3 py-2 mb-4">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Pregunta consultada — no se cuenta como correcta ni incorrecta</span>
+                    </div>
+                    <div class="flex justify-end">
+                        <button @click="siguientePregunta()"
+                                class="font-bold py-3 px-8 rounded-xl shadow-lg transform transition hover:-translate-y-1 flex items-center gap-2"
+                                :class="modoVerRespuesta
+                                    ? 'bg-purple-700 hover:bg-purple-600 text-white shadow-purple-900/20'
+                                    : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'">
+                            <span x-text="modoVerRespuesta ? 'Continuar' : 'Siguiente'"></span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 

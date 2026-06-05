@@ -528,3 +528,33 @@ Se auditó la RPC `reiniciar_progreso` para confirmar que su comportamiento no i
 - ✅ **Reinicio completo:** Al presionar "Reiniciar Progreso", todas las exclusiones ("Ya me la sé") del banco se limpian, permitiendo que esas preguntas vuelvan a aparecer. Las favoritas permanecen intactas.
 - ✅ **Documentación sincronizada:** `PROJECT_CONTEXT.md`, `PROJECT_BRIEF.md` y `AI_PROJECT_LOG.md` actualizados para reflejar el nuevo comportamiento del RPC.
 
+---
+
+## 12. Auditoría de Visualización Sin Penalización (Junio 2026) — v1.9.2
+
+**Fecha:** 2026-06-05
+**Auditor:** Antigravity (AI System)
+**Versión Auditada:** v1.9.1 → v1.9.2
+
+### 12.1. Hallazgos y Mejoras Implementadas
+
+#### 🔴 CRÍTICOS (todos resueltos)
+
+| ID | Archivo | Hallazgo | Resolución |
+|----|---------|----------|------------|
+| C1 | `app.js`, `index.html` | **Falta de un modo de consulta sin penalización.** Cuando el alumno se enfrentaba a una pregunta y no sabía la respuesta, si quería ver la opción correcta se veía obligado a responder al azar, lo que generaba un intento fallido (registrado en base de datos) y enviaba la pregunta al modo de "repaso de fallos", distorsionando sus estadísticas reales de estudio y racha. | ✅ Se implementó el modo "Ver Respuesta". Se añadió un botón en forma de ojo morado en la UI (`index.html`) que ejecuta `verRespuesta()` en `app.js`. Esto resalta la opción correcta, bloquea los botones y habilita un botón inferior "Continuar" que no invoca a `responder()` ni registra ningún intento en Supabase, avanzando limpiamente en el quiz. |
+
+### 12.2. Flujo de Trabajo del Modo "Ver Respuesta"
+
+| Estado de la Pregunta | Acciones Disponibles | Comportamiento del Botón Inferior |
+|----------------------|----------------------|-----------------------------------|
+| **Antes de Responder** | Seleccionar opción, `Ya me la sé`, `Favorito`, `👁 Ver Respuesta` | Botón oculto |
+| **Opción Respondida Normalmente** | Botones de opción bloqueados, indicador de acierto/fallo | `Siguiente` (Azul) - Registra progreso en Supabase |
+| **Opción Consultada con "Ver Respuesta"** | Botones de opción bloqueados, se muestra correcta en verde | `Continuar` (Morado) - Salta de pregunta sin registrar progreso |
+
+### 12.3. Estado Final del Proyecto (v1.9.2)
+
+- ✅ **Consulta limpia:** Botón "Ver Respuesta" totalmente operativo sin penalizar al estudiante.
+- ✅ **Reset de estado:** El flag `modoVerRespuesta` se limpia correctamente al presionar "Continuar" (en `siguientePregunta()`) o al resetear estadísticas (`resetStats()`).
+- ✅ **Invalidador de Caché:** Cache version en `sw.js` incrementada a `escalafon-v6` para asegurar que el navegador de los alumnos descargue el nuevo script de la aplicación.
+

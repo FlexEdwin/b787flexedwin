@@ -114,7 +114,7 @@ Para soportar el algoritmo de repetición espaciada y doble validación, la tabl
 
 ---
 
-## 4. Estado Actual del Proyecto (v1.8 Estable)
+## 4. Estado Actual del Proyecto (v1.9.2 Estable)
 
 ### ✅ Arquitectura & Core
 
@@ -133,6 +133,7 @@ Para soportar el algoritmo de repetición espaciada y doble validación, la tabl
 - **Estadísticas de Aprendizaje Reales**: Visualización del progreso real ("X preguntas por aprender de Y") en lugar del contador de racha tradicional en la pantalla de resultados.
 - **Panel de Ayuda / FAQ**: Modal flotante disponible en toda la aplicación para explicar de forma interactiva las mecánicas de estudio, sincronización y doble validación.
 - **Feedback Visual y Enlaces**: Footer dinámico con enlaces interactivos a `flexedwin.com` y correo de soporte `hello@flexedwin.com`.
+- **Visualización sin Penalización ("Ver Respuesta")**: Botón que ilumina la respuesta correcta en verde, bloquea la selección e intercambia el botón inferior por "Continuar" para avanzar sin registrar intentos en Supabase ni alterar las estadísticas del lote.
 
 ### ⚠️ Deuda Técnica Restante
 
@@ -152,6 +153,7 @@ Plataforma de entrenamiento de alto rendimiento para certificaciones técnicas.
 1. **Anti-Memorización**: Las opciones se barajan pero conservan su identidad (`{letra: 'B', texto: '...'}`).
 2. **Validación**: Al hacer click, se compara `opcion.letra` vs `db.correcta` directamente. Soporta múltiples letras correctas (ej. `A,B`).
 3. **Persistencia**: Cada respuesta se envía a Supabase (`rpc/guardar_intento`) con el ID del usuario. Si falla la red, el quiz continúa, priorizando la experiencia de estudio.
+4. **Ver Respuesta sin Penalización**: Si el usuario usa el botón `👁 Ver Respuesta`, se resalta la opción correcta y se bloquean las opciones para evitar respuestas posteriores. Al avanzar (usando el botón "Continuar"), no se envía ningún intento de respuesta a Supabase (`rpc/guardar_intento`), por lo que la pregunta no cuenta como acierto ni fallo, ni entra en repaso.
 
 ### Lógica de Progreso y Estadísticas del Banco (v1.8)
 
