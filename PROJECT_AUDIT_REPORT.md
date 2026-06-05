@@ -582,3 +582,22 @@ Se auditó la RPC `reiniciar_progreso` para confirmar que su comportamiento no i
 - **Acción Deshabilitada:** El botón de confirmar se bloquea si el usuario desmarca ambas opciones.
 - **Invalidador de Caché:** Cache version en `sw.js` incrementada a `escalafon-v7`.
 
+---
+
+## 14. Auditoría de Recarga de Estadísticas Reactivas (Junio 2026) — v1.9.4
+
+**Fecha:** 2026-06-05
+**Auditor:** Antigravity (AI System)
+**Versión Auditada:** v1.9.3 → v1.9.4
+
+### 14.1. Hallazgos y Mejoras Implementadas
+
+#### 🔴 CRÍTICOS (todos resueltos)
+
+| ID | Archivo | Hallazgo | Resolución |
+|----|---------|----------|------------|
+| C1 | `app.js` | **Estadísticas desactualizadas en el Dashboard al salir/cancelar/pausar.** Cuando un alumno abandonaba un quiz a mitad de camino o lo pausaba para regresar al dashboard, las estadísticas de "preguntas pendientes de total" no se actualizaban, mostrando datos desfasados a menos que se presionara F5. | ✅ Se modificaron los métodos `volverAlDashboard()` y `volverAlMenu()` para invocar de forma asíncrona a `cargarStatsBanco(this.bancoSeleccionado)` en segundo plano. Esto asegura que la UI del Dashboard reciba los conteos actualizados del avance sin bloquear la navegación inmediata del usuario. |
+
+### 14.2. Invalidador de Caché
+* La versión del caché en `sw.js` se incrementó de `'escalafon-v7'` a `'escalafon-v8'` para asegurar la actualización inmediata de la lógica en los navegadores de los clientes.
+

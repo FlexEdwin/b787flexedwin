@@ -2,10 +2,23 @@
 
 ## Estado Actual
 
-- **Versión:** v1.9.3 (Feature)
+- **Versión:** v1.9.4 (Hotfix)
 - **Progreso:** ~100% completado.
-- **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones y el progreso general se pueden limpiar de forma selectiva (preguntas vuelven al pool) pero las favoritas se conservan intactas. Botón "Ver Respuesta" para consultar la respuesta correcta en caliente sin responder y avanzar sin penalización ni alterar estadísticas.
+- **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones y el progreso general se pueden limpiar de forma selectiva (preguntas vuelven al pool) pero las favoritas se conservan intactas. Botón "Ver Respuesta" para consultar la respuesta correcta en caliente sin responder y avanzar sin penalización ni alterar estadísticas. Recarga automática y en segundo plano de las estadísticas al regresar al Dashboard tras cancelar o finalizar un quiz (solucionando el bug de estadísticas desactualizadas sin F5).
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-06-05] - Hotfix: Recarga de Estadísticas al Salir del Quiz (v1.9.4) ⚡
+
+**REQUERIMIENTOS:**
+1. Solucionar el bug por el cual las estadísticas del Dashboard ("preguntas pendientes de total") no se actualizaban al regresar de una sesión de Quiz a menos que se recargara manualmente con F5.
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- **src/js/app.js**:
+  - Modificadas las funciones `volverAlDashboard()` y `volverAlMenu()` para invocar de forma asíncrona a `cargarStatsBanco(this.bancoSeleccionado)` en segundo plano cuando el usuario regresa al Dashboard. Esto asegura que los recuentos reactivos se refresquen inmediatamente sin bloquear la navegación del usuario.
+- **sw.js**:
+  - Se incrementó el identificador del caché a `escalafon-v8` para invalidar el almacenamiento en caché del navegador y propagar el cambio.
 
 ---
 

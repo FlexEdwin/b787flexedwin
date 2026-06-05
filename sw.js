@@ -1,8 +1,8 @@
 // ============================================================
-// SERVICE WORKER - Proyecto Escalafón v5
+// SERVICE WORKER - Proyecto Escalafón v6
 // Estrategia: Cache-first para assets, Network-first para APIs
 // ============================================================
-const CACHE_NAME = 'escalafon-v7';
+const CACHE_NAME = 'escalafon-v8';
 
 // Assets estáticos que SÍ existen y deben cachearse
 const STATIC_CACHE = [

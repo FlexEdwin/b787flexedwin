@@ -422,6 +422,9 @@ function app() {
             this.preguntas = [];
             this.indiceActual = 0;
             this.resetStats();
+            if (this.bancoSeleccionado) {
+                this.cargarStatsBanco(this.bancoSeleccionado).catch(e => console.error(e));
+            }
         },
 
 
@@ -733,6 +736,9 @@ function app() {
             this.preguntas = [];
             this.vistaActual = 'dashboard';
             this.ataSeleccionado = '';
+            if (this.bancoSeleccionado) {
+                this.cargarStatsBanco(this.bancoSeleccionado).catch(e => console.error(e));
+            }
         },
 
         resetStats() {

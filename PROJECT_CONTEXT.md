@@ -114,7 +114,7 @@ Para soportar el algoritmo de repetición espaciada y doble validación, la tabl
 
 ---
 
-## 4. Estado Actual del Proyecto (v1.9.3 Estable)
+## 4. Estado Actual del Proyecto (v1.9.4 Estable)
 
 ### ✅ Arquitectura & Core
 
@@ -134,6 +134,7 @@ Para soportar el algoritmo de repetición espaciada y doble validación, la tabl
 - **Panel de Ayuda / FAQ**: Modal flotante disponible en toda la aplicación para explicar de forma interactiva las mecánicas de estudio, sincronización y doble validación.
 - **Feedback Visual y Enlaces**: Footer dinámico con enlaces interactivos a `flexedwin.com` y correo de soporte `hello@flexedwin.com`.
 - **Visualización sin Penalización ("Ver Respuesta")**: Botón que ilumina la respuesta correcta en verde, bloquea la selección e intercambia el botón inferior por "Continuar" para avanzar sin registrar intentos en Supabase ni alterar las estadísticas del lote.
+- **Auto-Recarga de Estadísticas**: Refresco reactivo y en segundo plano de las estadísticas de avance del banco al cancelar, salir o pausar una sesión de Quiz, eliminando desfases sin recargas manuales (F5).
 
 ### ⚠️ Deuda Técnica Restante
 

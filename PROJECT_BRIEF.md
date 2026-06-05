@@ -84,6 +84,10 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 - **Selector de Componentes a Reiniciar**: ✅ Al presionar "Reiniciar Progreso", se despliega un modal nativo interactivo con checkboxes que le permite al alumno decidir si desea borrar la Maestría General (historial de respuestas) y/o las Exclusiones ("Ya me la sé").
 - **Higiene de Datos**: ✅ Las favoritas se conservan siempre intactas, logrando un control total sobre el reset del banco.
 
+### J. Recarga de Estadísticas Reactivas (v1.9.4) ✅ **COMPLETADO**
+
+- **Auto-Refresh asíncrono**: ✅ Al salir o cancelar una sesión de Quiz a mitad de lote, o al pausar el test, la aplicación ahora recarga automáticamente en segundo plano las estadísticas del banco seleccionado, garantizando que el Dashboard refleje el avance real sin forzar un F5.
+
 ---
 
 ## 4. Reglas de Negocio (v2.0 Refactor)
