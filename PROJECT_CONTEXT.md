@@ -82,7 +82,7 @@ Basado en las llamadas RPC y consultas `sb.from()` en `src/js/app.js`, este es e
 
 El backend delega lógica compleja a funciones de base de datos para seguridad y encapsulamiento:
 
-- `reiniciar_progreso(p_banco_id, p_ata_id)`: Reinicia el progreso del usuario borrando sus registros de `respuestas` (que es lo que realmente controla la maestría en `obtener_general`), borrando también sus registros de `exclusion` ("Ya me la sé") para que las preguntas excluidas vuelvan al pool de estudio, y reseteando `progreso.respondida_bien_seguido`. Las preguntas marcadas como favoritas (`favorita`) **no** se borran. Filtra por banco activo (`p_banco_id`) y opcionalmente por ATA.
+- `reiniciar_progreso(p_banco_id, p_ata_id, p_reiniciar_maestria, p_reiniciar_exclusiones)`: Reinicia de forma selectiva el progreso del usuario borrando sus registros de `respuestas` (si `p_reiniciar_maestria` es TRUE) y/o borrando sus registros de `exclusion` (si `p_reiniciar_exclusiones` es TRUE). Las preguntas favoritas (`favorita`) nunca se borran. Filtra por banco activo (`p_banco_id`) y opcionalmente por ATA.
 - `obtener_general(p_banco_id, p_ata_id, cantidad, p_umbral_maestria)`: Devuelve preguntas aleatorias excluyendo las dominadas (maestradas según el umbral configurado), excluidas ("Ya me la sé") y en repaso (cuarentena).
 - `obtener_repaso(p_banco_id, cantidad)`: Devuelve preguntas falladas que se encuentran en cuarentena (repaso), excluyendo las marcadas con "Ya me la sé".
 - `obtener_favoritas(p_banco_id, cantidad)`: Devuelve todas las preguntas marcadas como favoritas del banco activo para el usuario actual.
@@ -114,7 +114,7 @@ Para soportar el algoritmo de repetición espaciada y doble validación, la tabl
 
 ---
 
-## 4. Estado Actual del Proyecto (v1.9.2 Estable)
+## 4. Estado Actual del Proyecto (v1.9.3 Estable)
 
 ### ✅ Arquitectura & Core
 
@@ -129,7 +129,7 @@ Para soportar el algoritmo de repetición espaciada y doble validación, la tabl
 - **Multi-Banco**: Operativo para B787, Inglés, AMOS y Regulaciones Aeronáuticas.
 - **Soporte de Imágenes**: Renderizado adaptativo de imágenes desde el bucket `preguntas-media` de Supabase Storage.
 - **Fix "Imagen Fantasma" (Ghost Image)**: Control de transición de imágenes con estado `imagenCargada` y skeleton loading para evitar visualización incorrecta durante conexiones lentas.
-- **Reinicio de Progreso**: Botón confirmable para borrar progreso acumulado del banco activo llamando al procedimiento `reiniciar_progreso`.
+- **Reinicio de Progreso Configurable**: Modal interactivo nativo que permite al usuario decidir si desea reiniciar la Maestría/Progreso general y/o las Exclusiones ("Ya me la sé"), manteniendo las Favoritas intactas.
 - **Estadísticas de Aprendizaje Reales**: Visualización del progreso real ("X preguntas por aprender de Y") en lugar del contador de racha tradicional en la pantalla de resultados.
 - **Panel de Ayuda / FAQ**: Modal flotante disponible en toda la aplicación para explicar de forma interactiva las mecánicas de estudio, sincronización y doble validación.
 - **Feedback Visual y Enlaces**: Footer dinámico con enlaces interactivos a `flexedwin.com` y correo de soporte `hello@flexedwin.com`.
@@ -160,7 +160,7 @@ Plataforma de entrenamiento de alto rendimiento para certificaciones técnicas.
 1. **Total de Preguntas del Banco**: Cantidad de preguntas asociadas al `banco_id` activo.
 2. **Preguntas por Aprender (Pendientes)**: Suma de las preguntas devueltas por `obtener_general(9999)` (no dominadas) y `obtener_repaso(9999)` (en repaso por fallos).
 3. **Preguntas Dominadas (Maestradas)**: Calculadas como `Total del Banco - Preguntas por Aprender`. Esto representa el progreso real del usuario.
-4. **Reinicio de Progreso**: El usuario puede limpiar su progreso del banco actual llamando a `reiniciar_progreso(p_banco_id, p_ata_id)` vía RPC. El RPC borra los registros de la tabla `respuestas` para ese banco (que es lo que `obtener_general` consulta para determinar maestría) y resetea `progreso.respondida_bien_seguido`. Esto devuelve todas las preguntas al pool general de estudio.
+4. **Reinicio de Progreso**: El usuario puede limpiar su progreso del banco actual llamando a `reiniciar_progreso(p_banco_id, p_ata_id, p_reiniciar_maestria, p_reiniciar_exclusiones)` vía RPC. El RPC borra de manera condicional los registros de la tabla `respuestas` y/o `exclusion` según la selección del usuario en el modal. Las favoritas nunca se eliminan.
 
 ### Seguridad
 

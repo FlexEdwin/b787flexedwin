@@ -333,7 +333,7 @@
                         <span class="font-bold" x-text="totalPreguntasBanco"></span>
                     </span>
                 </div>
-                <button @click="reiniciarProgreso()" 
+                <button @click="mostrarResetModal = true; resetOpMaestria = true; resetOpExclusiones = true" 
                         class="text-xs text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     <span>Reiniciar Progreso</span>
@@ -622,6 +622,73 @@
                     <h3 class="text-sm font-bold text-blue-400 mb-1">¿Necesito credenciales para usar la plataforma?</h3>
                     <p class="text-slate-400 text-sm leading-relaxed">No. Puedes entrar como invitado y usar todas las funciones. Las credenciales solo son necesarias si quieres sincronizar tu progreso entre múltiples dispositivos. Solicita credenciales escribiendo a <a href="mailto:hello@flexedwin.com" class="text-blue-400 hover:underline">hello@flexedwin.com</a>.</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Reinicio de Progreso -->
+    <div x-show="mostrarResetModal" 
+         x-transition.opacity
+         style="display: none;"
+         class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm"
+         @click.self="mostrarResetModal = false">
+        <div class="bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full border border-slate-700 relative animate-fade-in">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-slate-700 flex items-center justify-between rounded-t-2xl bg-slate-800">
+                <h2 class="text-lg font-black text-white flex items-center gap-2 text-red-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Reiniciar Progreso
+                </h2>
+                <button @click="mostrarResetModal = false" class="text-slate-400 hover:text-white transition p-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Body -->
+            <div class="p-6 space-y-6">
+                <p class="text-sm text-slate-300">
+                    Selecciona qué elementos deseas reiniciar para el banco activo. Las preguntas marcadas como favoritas <strong class="text-blue-400">no</strong> se verán afectadas.
+                </p>
+                
+                <div class="space-y-4">
+                    <!-- Opción 1: Progreso / Maestría -->
+                    <label class="flex items-start gap-3 cursor-pointer group">
+                        <input type="checkbox" x-model="resetOpMaestria" 
+                               class="mt-1 w-4 h-4 text-blue-600 bg-slate-900 border-slate-600 rounded focus:ring-blue-500 focus:ring-offset-slate-800 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">Reiniciar Progreso / Maestría</span>
+                            <span class="text-xs text-slate-400 mt-0.5">Resetea el historial de respuestas. Las preguntas dominadas volverán a aparecer en el Estudio General.</span>
+                        </div>
+                    </label>
+                    
+                    <!-- Opción 2: Exclusiones / Ya me la sé -->
+                    <label class="flex items-start gap-3 cursor-pointer group">
+                        <input type="checkbox" x-model="resetOpExclusiones" 
+                               class="mt-1 w-4 h-4 text-blue-600 bg-slate-900 border-slate-600 rounded focus:ring-blue-500 focus:ring-offset-slate-800 focus:ring-2">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">Reiniciar Exclusiones ("Ya me la sé")</span>
+                            <span class="text-xs text-slate-400 mt-0.5">Las preguntas que marcaste para omitir permanentemente volverán a estar activas en tu pool de estudio.</span>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Advertencia -->
+                <div class="p-3 bg-red-950/30 border border-red-500/20 rounded-xl text-xs text-red-400/90 leading-relaxed">
+                    ⚠️ Esta acción es irreversible. Si no seleccionas ninguna opción, no se realizará ningún cambio.
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-slate-700 flex justify-end gap-3 rounded-b-2xl bg-slate-800/50">
+                <button @click="mostrarResetModal = false" 
+                        class="px-4 py-2 text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors">
+                    Cancelar
+                </button>
+                <button @click="reiniciarProgreso()" 
+                        :disabled="!resetOpMaestria && !resetOpExclusiones"
+                        class="px-4 py-2 text-sm font-bold bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors shadow-lg shadow-red-950/50">
+                    Confirmar Reinicio
+                </button>
             </div>
         </div>
     </div>

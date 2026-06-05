@@ -45,6 +45,9 @@ function app() {
         chartInstance: null,
         imagenCargada: true,  // Controla visibilidad de la imagen: false mientras carga, true cuando lista
         mostrarAyuda: false,   // Estado del modal de FAQ
+        mostrarResetModal: false, // Estado del modal de reinicio de progreso
+        resetOpMaestria: true,    // Opción para reiniciar maestría/progreso
+        resetOpExclusiones: true, // Opción para reiniciar exclusiones ("Ya me la sé")
 
         // --- STATS DEL BANCO ---
         totalPreguntasBanco: 0,
@@ -316,20 +319,21 @@ function app() {
         },
 
         async reiniciarProgreso() {
-            // 1. Preguntar confirmación (Es una acción destructiva)
-            if (!confirm("⚠️ ¿Estás seguro?\n\nEsto reiniciará tu nivel de 'Aspirante' y todas las preguntas volverán a aparecer en el Estudio General.\n\nNo se borrará tu historial de errores, solo tu racha de aciertos.")) {
-                return;
-            }
+            // Ocultar modal
+            this.mostrarResetModal = false;
 
             this.vistaActual = 'cargando';
             this.mensajeCarga = 'Reiniciando sistemas...';
 
             try {
                 // CRÍTICO: El RPC ahora borra de 'respuestas' (que es lo que realmente
-                // controla la maestría en obtener_general), filtrado por banco activo.
+                // controla la maestría en obtener_general), filtrado por banco activo y
+                // los booleanos indicados por el usuario.
                 const { error } = await sb.rpc('reiniciar_progreso', {
                     p_banco_id: this.bancoSeleccionado,
-                    p_ata_id: null
+                    p_ata_id: null,
+                    p_reiniciar_maestria: this.resetOpMaestria,
+                    p_reiniciar_exclusiones: this.resetOpExclusiones
                 });
 
                 if (error) throw error;
@@ -338,7 +342,7 @@ function app() {
                 this.preguntas = [];
                 this.resetStats();
                 
-                this.showToast("¡Progreso reiniciado! A empezar de cero.", 'info');
+                this.showToast("¡Progreso reiniciado según tu selección!", 'info');
                 
                 // Recargar datos frescos
                 await Promise.all([

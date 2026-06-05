@@ -37,6 +37,6 @@ Lee este contexto antes de escribir una sola línea de código.
 
 ## 5. Estado Actual
 
-**Versión:** v1.9.2 — Estable  
+**Versión:** v1.9.3 — Estable  
 **Última auditoría:** 2026-06-05  
 Todos los módulos funcionales. Prioridad actual: estabilidad y contenido (ver `PROJECT_AUDIT_REPORT.md`).

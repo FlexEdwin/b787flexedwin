@@ -558,3 +558,27 @@ Se auditó la RPC `reiniciar_progreso` para confirmar que su comportamiento no i
 - ✅ **Reset de estado:** El flag `modoVerRespuesta` se limpia correctamente al presionar "Continuar" (en `siguientePregunta()`) o al resetear estadísticas (`resetStats()`).
 - ✅ **Invalidador de Caché:** Cache version en `sw.js` incrementada a `escalafon-v6` para asegurar que el navegador de los alumnos descargue el nuevo script de la aplicación.
 
+---
+
+## 13. Auditoría de Reinicio de Progreso Configurable (Junio 2026) — v1.9.3
+
+**Fecha:** 2026-06-05
+**Auditor:** Antigravity (AI System)
+**Versión Auditada:** v1.9.2 → v1.9.3
+
+### 13.1. Hallazgos y Mejoras Implementadas
+
+#### 🔴 CRÍTICOS (todos resueltos)
+
+| ID | Archivo | Hallazgo | Resolución |
+|----|---------|----------|------------|
+| C1 | `app.js`, `index.html` | **Reinicio destructivo no configurable.** El reinicio de progreso del banco eliminaba forzosamente tanto el historial de respuestas/maestría como las exclusiones ("Ya me la sé"). Un usuario que quería repasar preguntas maestras pero mantener sus exclusiones de preguntas irrelevantes no tenía opción. | ✅ Se implementó un modal interactivo nativo con casillas de verificación que permite decidir qué reiniciar. Se actualizó el RPC de Supabase para aceptar parámetros booleanos selectivos (`p_reiniciar_maestria` y `p_reiniciar_exclusiones`). |
+
+### 13.2. Lógica del Proceso de Reinicio
+
+- **Modal de Confirmación:** Reemplaza la alerta standard del navegador. Cuenta con dos opciones (ambas por defecto activas):
+  1. *Reiniciar Progreso / Maestría:* Borra los registros en `respuestas` y resetea aciertos consecutivos en `progreso`.
+  2. *Reiniciar Exclusiones ("Ya me la sé"):* Borra los registros en `exclusion` para que vuelvan a circular.
+- **Acción Deshabilitada:** El botón de confirmar se bloquea si el usuario desmarca ambas opciones.
+- **Invalidador de Caché:** Cache version en `sw.js` incrementada a `escalafon-v7`.
+

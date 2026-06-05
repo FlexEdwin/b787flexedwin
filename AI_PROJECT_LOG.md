@@ -2,10 +2,30 @@
 
 ## Estado Actual
 
-- **Versión:** v1.9.2 (Feature)
+- **Versión:** v1.9.3 (Feature)
 - **Progreso:** ~100% completado.
-- **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones se limpian (preguntas vuelven al pool) pero las favoritas se conservan. Botón "Ver Respuesta" para consultar la respuesta correcta en caliente sin responder y avanzar sin penalización ni alterar estadísticas.
+- **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones y el progreso general se pueden limpiar de forma selectiva (preguntas vuelven al pool) pero las favoritas se conservan intactas. Botón "Ver Respuesta" para consultar la respuesta correcta en caliente sin responder y avanzar sin penalización ni alterar estadísticas.
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-06-05] - Feature: Reinicio de Progreso Configurable (v1.9.3) 🔄
+
+**REQUERIMIENTOS:**
+1. Permitir al usuario elegir selectivamente si desea reiniciar el progreso/maestría general (tabla `respuestas` y conteos de `progreso`) y/o reiniciar las exclusiones ("Ya me la sé" / tabla `exclusion`) al presionar "Reiniciar Progreso" en el Dashboard.
+2. Reemplazar la confirmación estándar de navegador `confirm()` por un modal nativo interactivo con checkboxes.
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- **Base de Datos (Supabase SQL)** *(acción manual requerida)*:
+  - Recreada la función RPC `reiniciar_progreso` para aceptar dos nuevos parámetros booleanos opcionales: `p_reiniciar_maestria` (por defecto TRUE) y `p_reiniciar_exclusiones` (por defecto TRUE) y realizar el borrado correspondiente de forma condicional.
+- **src/js/app.js**:
+  - Se añadieron las variables de estado `mostrarResetModal` (false), `resetOpMaestria` (true) y `resetOpExclusiones` (true).
+  - Se modificó la llamada a `sb.rpc('reiniciar_progreso')` en `reiniciarProgreso()` para suministrar ambos parámetros booleanos elegidos en la UI.
+- **index.html**:
+  - Se modificó la acción `@click` del botón "Reiniciar Progreso" para levantar el modal (`mostrarResetModal = true`) con los valores por defecto.
+  - Se añadió la estructura del modal interactivo con checkboxes vinculados con `x-model` a `resetOpMaestria` y `resetOpExclusiones`.
+- **sw.js**:
+  - Se incrementó el identificador del caché a `escalafon-v7` para forzar la actualización del caché en el navegador de los alumnos.
 
 ---
 
