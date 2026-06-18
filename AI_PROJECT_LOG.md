@@ -2,10 +2,30 @@
 
 ## Estado Actual
 
-- **Versión:** v1.9.4 (Hotfix)
+- **Versión:** v1.9.5 (Hotfix)
 - **Progreso:** ~100% completado.
 - **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones y el progreso general se pueden limpiar de forma selectiva (preguntas vuelven al pool) pero las favoritas se conservan intactas. Botón "Ver Respuesta" para consultar la respuesta correcta en caliente sin responder y avanzar sin penalización ni alterar estadísticas. Recarga automática y en segundo plano de las estadísticas al regresar al Dashboard tras cancelar o finalizar un quiz (solucionando el bug de estadísticas desactualizadas sin F5).
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-06-18] - Hotfix: Cambio de Umbral de Maestría Predeterminado a 1 Acierto (v1.9.5) ⚡
+
+**REQUERIMIENTOS:**
+1. Cambiar el valor por defecto del umbral de maestría (repeticiones para dominar una pregunta) de 2 aciertos a 1 acierto.
+2. Ajustar la visualización del selector en la interfaz de usuario para reflejar que 1 acierto es la opción predeterminada/recomendada y 2 aciertos es la opción estándar.
+3. Modificar la sección de preguntas frecuentes (FAQ/Modal de Ayuda) y documentos `.md` para reflejar la actualización de los valores por defecto del umbral de maestría.
+4. Incrementar la versión del service worker para propagar los cambios y limpiar caché.
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- **src/js/app.js**:
+  - Se cambió el valor inicial de `umbralMaestria` de `2` a `1`.
+  - Se actualizó el fallback en la inicialización de `initApp` al leer de `localStorage` para que sea `1`.
+- **index.html**:
+  - Se modificaron las etiquetas de opción para `umbralMaestria`: "1 acierto (Predeterminado / Rápido)", "2 aciertos (Estándar)", "3 aciertos (Intensivo)".
+  - Se actualizó la respuesta de la pregunta frecuente "¿Por qué se repiten las preguntas?" en el FAQ para indicar que el valor por defecto es 1 vez.
+- **sw.js**:
+  - Se incrementó el identificador de caché a `escalafon-v9`.
 
 ---
 

@@ -219,8 +219,8 @@
                     <select x-model.number="umbralMaestria" 
                             @change="localStorage.setItem('escalafon_umbral_maestria', umbralMaestria); cargarStatsBanco(bancoSeleccionado)"
                             class="bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold">
-                        <option value="1">1 acierto (Rápido)</option>
-                        <option value="2">2 aciertos (Recomendado)</option>
+                        <option value="1">1 acierto (Predeterminado / Rápido)</option>
+                        <option value="2">2 aciertos (Estándar)</option>
                         <option value="3">3 aciertos (Intensivo)</option>
                     </select>
                 </div>
@@ -595,7 +595,7 @@
                 <div class="border-t border-slate-700"></div>
                 <div>
                     <h3 class="text-sm font-bold text-blue-400 mb-1">¿Por qué se repiten las preguntas?</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Utilizamos <strong class="text-slate-300">repetición espaciada</strong>. Por defecto, necesitas acertar una pregunta <strong class="text-slate-300">2 veces consecutivas</strong> para dominarla. Puedes cambiar esto en los "Ajustes del Algoritmo" del Dashboard a 1 vez (rápido) o 3 veces (intensivo).</p>
+                    <p class="text-slate-400 text-sm leading-relaxed">Utilizamos <strong class="text-slate-300">repetición espaciada</strong>. Por defecto, necesitas acertar una pregunta <strong class="text-slate-300">1 vez</strong> para dominarla. Puedes cambiar esto en los "Ajustes del Algoritmo" del Dashboard a 2 veces consecutivas (estándar) o 3 veces (intensivo).</p>
                 </div>
                 <div class="border-t border-slate-700"></div>
                 <div>

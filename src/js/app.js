@@ -28,7 +28,7 @@ function app() {
         cantidadPreguntas: 25,   // Cantidad de preguntas por sesión (25, 50 o 100). Configurable desde el Dashboard.
         preguntas: [],           // Lote activo de preguntas (cantidad variable)
         indiceActual: 0,         // Índice dentro del lote
-        umbralMaestria: 2,       // Cantidad de respuestas correctas seguidas para maestrar (1, 2 o 3)
+        umbralMaestria: 1,       // Cantidad de respuestas correctas seguidas para maestrar (1, 2 o 3)
         totalFavoritasBanco: 0,  // Conteo de favoritas del banco activo
         idsFavoritas: new Set(), // IDs de preguntas favoritas de la sesión actual
         bloqueado: false,
@@ -135,7 +135,7 @@ function app() {
 
             // Restaurar configuración del umbral de maestría
             const savedUmbral = localStorage.getItem('escalafon_umbral_maestria');
-            this.umbralMaestria = savedUmbral ? parseInt(savedUmbral, 10) : 2;
+            this.umbralMaestria = savedUmbral ? parseInt(savedUmbral, 10) : 1;
 
             // 1. Verificar Sesión
             const { data: { session } } = await sb.auth.getSession();

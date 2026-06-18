@@ -1,6 +1,6 @@
 {
   "name": "escalafon",
-  "version": "1.6.0",
+  "version": "1.9.5",
   "description": "Plataforma PWA de estudio y preparación para escalafón técnico aeronáutico",
   "main": "index.html",
   "scripts": {

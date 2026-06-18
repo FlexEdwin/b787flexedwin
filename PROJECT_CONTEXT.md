@@ -114,7 +114,7 @@ Para soportar el algoritmo de repetición espaciada y doble validación, la tabl
 
 ---
 
-## 4. Estado Actual del Proyecto (v1.9.4 Estable)
+## 4. Estado Actual del Proyecto (v1.9.5 Estable)
 
 ### ✅ Arquitectura & Core
 

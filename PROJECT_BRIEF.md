@@ -69,7 +69,7 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 ### G. Funcionalidades de Repetición y Gestión Personalizada (v1.9) ✅ **COMPLETADO**
 
 - **Selector de Cantidad Ampliado**: ✅ Se extendieron las opciones de cantidad por sesión a: 200, 300, 400, 500, 600, 700 y 800 preguntas.
-- **Umbral de Maestría Configurable**: ✅ El alumno puede seleccionar que se repita la pregunta 1 vez, 2 veces (recomendado) o 3 veces para considerarla aprendida.
+- **Umbral de Maestría Configurable**: ✅ El alumno puede seleccionar que se repita la pregunta 1 vez (predeterminado / recomendado), 2 veces (estándar) o 3 veces para considerarla aprendida.
 - **Maestría Instantánea ("Ya me la sé")**: ✅ Se añadió el botón para excluir permanentemente preguntas del pool de estudio con cartel de confirmación para evitar exclusiones accidentales.
 - **Preguntas Favoritas**: ✅ Se implementó un sistema de marcación de favoritas (estrella) con estudio completo e ilimitado (se cargan todas las favoritas de corrido) y opción de desmarcar en caliente.
 - **Persistencia en Reinicio**: ✅ Reiniciar el progreso conserva intactas las preguntas favoritas. Las exclusiones de "Ya me la sé" y el historial de maestría se borran de acuerdo a la selección del usuario, permitiendo que vuelvan a aparecer en el pool.
@@ -101,7 +101,7 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 ### 4.2 Lógica de Aprendizaje
 
 - **Algoritmo**: Doble Validación (General vs Repaso).
-- **Criterio de Graduación (General)**: Graduación/retiro definitivo tras 2 aciertos consecutivos en modo `general`.
+- **Criterio de Graduación (General)**: Graduación/retiro definitivo tras cumplir el umbral de maestría seleccionado (1 por defecto, o hasta 3 aciertos consecutivos) en modo `general`.
 - **Criterio de Liberación (Repaso)**: Una pregunta fallada entra en cuarentena (Repaso) y se libera (vuelve a General) tras responderse correctamente 1 sola vez en modo `repaso`.
 
 ---
