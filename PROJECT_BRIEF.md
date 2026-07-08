@@ -135,3 +135,34 @@ Se requiere una migración para añadir la columna `banco_id` o `categoria` a la
 2.  ✅ Navegación fluida (Dashboard -> Quiz) sin tiempos de carga por pregunta.
 3.  ✅ Validación correcta en B787, Inglés, AMOS y Regulaciones Aeronáuticas.
 4.  ✅ Persistencia de datos y estadísticas fiables.
+
+---
+
+## 7. Roadmap y Backlog (Futuras Implementaciones)
+
+### Funcionalidad Propuesta: "Puntos Débiles" (Modo Pesadilla)
+**Descripción:** Permitir a los usuarios estudiar exclusivamente aquellas preguntas que han fallado un número determinado de veces (ej. 3, 4 o 5+ veces) para concentrarse en su "talón de Aquiles".
+
+**Diseño de UX Sugerido:**
+- En lugar de múltiples botones, crear una tarjeta única en el Dashboard llamada **"🔥 Puntos Débiles"**.
+- Dentro de la tarjeta, un selector desplegable: *"Estudiar preguntas falladas al menos: [ 2 | 3 | 5 ] veces"*.
+- Al iniciar, se cargaría ese lote de preguntas específicas.
+
+**Requisito Técnico Estricto (Rendimiento de Base de Datos):**
+- ❌ **Evitar:** Hacer un `COUNT` dinámico en tiempo real sobre la tabla `respuestas` donde `es_correcta = false` agrupando por pregunta. A medida que el volumen de respuestas crezca, esto saturaría el CPU y RAM de Supabase innecesariamente.
+- ✅ **Implementación Óptima:** Agregar una columna `total_fallos_historicos` (INT, default 0) a la tabla `progreso`. 
+- Cada vez que el usuario falle una pregunta (durante el guardado del intento en la RPC `guardar_intento`), incrementar este contador (`total_fallos_historicos = total_fallos_historicos + 1`).
+- La nueva RPC `obtener_puntos_debiles(p_limite_fallos)` simplemente haría un `SELECT` con `WHERE total_fallos_historicos >= p_limite_fallos`. Esta consulta indexada es instantánea y garantiza que la aplicación mantenga su escalabilidad sin comprometer el servidor.
+
+### Optimización Ultra-Ligera del Motor de Maestría (Escalabilidad a +10k usuarios)
+**Descripción:** Refactorizar la lógica central de la RPC `obtener_general` para eliminar el cálculo de maestría "al vuelo" que actualmente lee y ordena registros de la tabla `respuestas`. 
+
+**Motivación:** 
+Actualmente, el sistema determina si una pregunta está "aprendida" ejecutando una subconsulta que verifica los últimos 2 o 3 intentos del usuario en la tabla de `respuestas`. Para el MVP y miles de usuarios, PostgreSQL maneja esto sin problema. Sin embargo, a medida que la tabla crezca a millones de respuestas, esta evaluación dinámica en cada petición consumirá ciclos de CPU innecesarios.
+
+**Implementación Técnica Sugerida (Supabase SQL):**
+1. Aprovechar la tabla `progreso` existente y su columna `respondida_bien_seguido`.
+2. Asegurar que la RPC `guardar_intento` mantenga sincronizado este número de forma atómica.
+3. Modificar `obtener_general` para que el filtro de maestría simplemente evalúe: 
+   `WHERE p.id NOT IN (SELECT pregunta_id FROM progreso WHERE respondida_bien_seguido >= p_umbral_maestria AND user_id = v_user_id)`
+4. **Impacto:** Convierte una subconsulta de agregación y ordenamiento pesado en una simple lectura de índice. Esto garantizará tiempos de respuesta de milisegundos sin importar el tamaño del historial del usuario.
