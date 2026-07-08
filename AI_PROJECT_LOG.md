@@ -2,10 +2,37 @@
 
 ## Estado Actual
 
-- **Versión:** v1.9.5 (Hotfix)
+- **Versión:** v2.0.0
 - **Progreso:** ~100% completado.
-- **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones y el progreso general se pueden limpiar de forma selectiva (preguntas vuelven al pool) pero las favoritas se conservan intactas. Botón "Ver Respuesta" para consultar la respuesta correcta en caliente sin responder y avanzar sin penalización ni alterar estadísticas. Recarga automática y en segundo plano de las estadísticas al regresar al Dashboard tras cancelar o finalizar un quiz (solucionando el bug de estadísticas desactualizadas sin F5).
+- **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800) para modo General, Modo Por Capítulo carga automáticamente TODAS las preguntas del capítulo (sin selector de cantidad), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones y el progreso general se pueden limpiar de forma selectiva (preguntas vuelven al pool) pero las favoritas se conservan intactas. Botón "Ver Respuesta" para consultar la respuesta correcta en caliente sin responder y avanzar sin penalización ni alterar estadísticas. Recarga automática y en segundo plano de las estadísticas al regresar al Dashboard o al finalizar un quiz. Modal de resultados muestra el banco y modo de la sesión estudiada. `finalizarSesion()` navega a resultados de forma instantánea y refresca stats en background (sin bloquear la UI).
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-07-07] - UX & Performance: Capítulo Completo, Contexto de Sesión y Fast Results (v2.0.0) 🚀
+
+**REQUERIMIENTOS:**
+1. Al estudiar "Por Capítulo", eliminar el selector de número de preguntas y cargar siempre la totalidad de preguntas no dominadas del capítulo seleccionado.
+2. Mostrar en el modal de resultados finales el nombre del banco y el modo/capítulo que se estuvo estudiando.
+3. Corregir el retraso al pasar de la última pregunta a la pantalla de resultados (causado por 4 llamadas síncronas a Supabase antes de mostrar el modal).
+
+**DIAGNÓSTICO DEL PROBLEMA DE RENDIMIENTO:**
+La función `finalizarSesion()` hacía `await cargarStatsBanco()` antes de navegar a `vistaActual = 'fin'`. `cargarStatsBanco` ejecuta 4 llamadas a Supabase **en secuencia** (COUNT preguntas, `obtener_general(9999)`, `obtener_repaso(9999)`, COUNT favoritas), lo que bloqueaba la transición visual 2-5 segundos innecesariamente, ya que los datos de la sesión (correctas, incorrectas, %) ya estaban en memoria.
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- **index.html**:
+  - `[Modo Por Capítulo]` Eliminado el `<select>` de cantidad de preguntas del card "Por Capítulo/Tema/Categoría" en el Dashboard. Reemplazado por un texto informativo: *"Se cargarán todas las preguntas del capítulo"*.
+  - `[Resultados]` Añadido bloque de contexto de sesión en el modal de fin de lote, mostrando: nombre del banco (en azul, uppercase) y el modo de estudio (`Capítulo: [nombre ATA]` | `Entrenamiento General` | `Repaso de Fallos` | `Preguntas Favoritas`). Usa los getters y estado reactivo existentes (`listaBancos`, `bancoSeleccionado`, `atas`, `ataSeleccionado`, `modo`, `labelCategoria`).
+- **src/js/app.js**:
+  - `[cargarPreguntas()]` Cuando el modo es `'ata'` (por capítulo), se pasa `cantidad: 9999` al RPC `obtener_general` en lugar de `this.cantidadPreguntas`, garantizando que se traigan todas las preguntas no dominadas del capítulo. El modo General sigue respetando la cantidad configurada por el usuario.
+  - `[finalizarSesion()]` **Fast Path**: Eliminado el `await cargarStatsBanco()` bloqueante. La función ahora navega a `vistaActual = 'fin'` de inmediato, renderiza el chart y lanza confetti. Luego, de forma no bloqueante (sin `await`), llama a `cargarStatsBanco()` en background. Los contadores de progreso del banco se actualizan reactivamente en el modal cuando Supabase responde.
+- **sw.js**:
+  - Se incrementó el identificador del caché a `escalafon-v10` para invalidar el almacenamiento local de los navegadores, ya que la estrategia de la PWA (Cache-First para estáticos) estaba sirviendo el archivo `app.js` viejo y truncando los capítulos a 25 preguntas.
+
+**RESULTADO:**
+- El modal de resultados aparece **instantáneamente** al terminar la última pregunta.
+- Al estudiar un capítulo, se estudia siempre el 100% de sus preguntas pendientes (sin truncado artificial).
+- El resumen de sesión siempre muestra el banco y modo exacto estudiado.
 
 ---
 

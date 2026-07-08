@@ -496,10 +496,13 @@ function app() {
                     };
                 } else {
                     rpcName = 'obtener_general';
+                    // Modo por capítulo ('ata'): traer TODAS las preguntas del capítulo sin límite.
+                    // Modo general: respetar la cantidad configurada por el usuario.
+                    const cantidadParaRPC = this.modo === 'ata' ? 9999 : this.cantidadPreguntas;
                     params = {
                         p_banco_id: this.bancoSeleccionado,
                         p_ata_id: null,
-                        cantidad: this.cantidadPreguntas,
+                        cantidad: cantidadParaRPC,
                         p_umbral_maestria: this.umbralMaestria
                     };
                     // Si el usuario seleccionó un ATA específico, filtrar por él
@@ -507,6 +510,9 @@ function app() {
                         params.p_ata_id = parseInt(entrada);
                     }
                 }
+                
+                console.log("DEBUG cargarPreguntas:", { modo: this.modo, entrada, params });
+
 
                 const { data, error } = await sb.rpc(rpcName, params);
 
@@ -676,13 +682,9 @@ function app() {
         },
 
         async finalizarSesion() {
-            this.cargando = true;
-            // 🆕 Cargar stats actualizadas del banco antes de mostrar resultados
-            try {
-                await this.cargarStatsBanco(this.bancoSeleccionado);
-            } catch(e) { console.error('Stats refresh error:', e); }
-
-            this.cargando = false;
+            // ✅ FAST PATH: Navegar a resultados de inmediato.
+            // Los datos de la sesión (stats.correctas, stats.incorrectas) ya están en memoria
+            // y son suficientes para renderizar el modal sin esperar a Supabase.
             this.vistaActual = 'fin';
             localStorage.removeItem('escalafon_sesion');
             this.sesionGuardada = false;
@@ -698,6 +700,15 @@ function app() {
             }
 
             this.$nextTick(() => this.renderChart());
+
+            // 🔄 BACKGROUND: Actualizar las estadísticas del banco de forma no bloqueante.
+            // El modal ya está visible; los contadores de pendientes/maestradas
+            // se actualizarán solos reactivamente cuando Supabase responda.
+            if (this.bancoSeleccionado) {
+                this.cargarStatsBanco(this.bancoSeleccionado).catch(e =>
+                    console.error('Stats refresh error (background):', e)
+                );
+            }
         },
 
         renderChart() {

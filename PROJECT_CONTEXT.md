@@ -114,12 +114,12 @@ Para soportar el algoritmo de repetición espaciada y doble validación, la tabl
 
 ---
 
-## 4. Estado Actual del Proyecto (v1.9.5 Estable)
+## 4. Estado Actual del Proyecto (v2.0.0 Estable)
 
 ### ✅ Arquitectura & Core
 
 - **Navegación 3-Niveles**: `Inicio (Selección)` -> `Dashboard (Config)` -> `Quiz (Estudio)`.
-- **Carga Eficiente**: Implementado Batch Loading variable (25/50/100 preguntas por request) y Repaso Ilimitado reduciendo latencia y mejorando control de estudio.
+- **Carga Eficiente**: Batch Loading variable (25–800 preguntas por request) para modo General. Modo Por Capítulo siempre carga la totalidad de preguntas del capítulo (`cantidad: 9999`). Repaso Ilimitado y Favoritas también sin límite de lote.
 - **Validación Robusta**: Algoritmo "Direct-Check" (sin mapeo visual) que elimina falsos negativos.
 - **Persistencia**: Manejo de sesión resiliente con recuperación vía `localStorage` utilizando prefijos dedicados (`escalafon_sesion`).
 
@@ -134,7 +134,10 @@ Para soportar el algoritmo de repetición espaciada y doble validación, la tabl
 - **Panel de Ayuda / FAQ**: Modal flotante disponible en toda la aplicación para explicar de forma interactiva las mecánicas de estudio, sincronización y doble validación.
 - **Feedback Visual y Enlaces**: Footer dinámico con enlaces interactivos a `flexedwin.com` y correo de soporte `hello@flexedwin.com`.
 - **Visualización sin Penalización ("Ver Respuesta")**: Botón que ilumina la respuesta correcta en verde, bloquea la selección e intercambia el botón inferior por "Continuar" para avanzar sin registrar intentos en Supabase ni alterar las estadísticas del lote.
-- **Auto-Recarga de Estadísticas**: Refresco reactivo y en segundo plano de las estadísticas de avance del banco al cancelar, salir o pausar una sesión de Quiz, eliminando desfases sin recargas manuales (F5).
+- **Auto-Recarga de Estadísticas**: Refresco reactivo y en segundo plano de las estadísticas de avance del banco al cancelar, salir, pausar o finalizar una sesión de Quiz, eliminando desfases sin recargas manuales (F5).
+- **Resultados Instantáneos**: `finalizarSesion()` navega al modal de resultados de inmediato (los datos de la sesión ya están en RAM) y refresca las estadísticas del banco en background sin bloquear la UI.
+- **Contexto de Sesión en Resultados**: El modal de fin de lote muestra el banco estudiado y el modo exacto (Entrenamiento General, Capítulo/Tema/Categoría específico, Repaso de Fallos o Preguntas Favoritas).
+- **Modo Por Capítulo Completo**: Al seleccionar un capítulo para estudiar, se cargan automáticamente TODAS las preguntas no dominadas del capítulo (sin selector de cantidad configurable por el usuario).
 
 ### ⚠️ Deuda Técnica Restante
 

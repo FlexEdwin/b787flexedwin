@@ -270,19 +270,7 @@
                                 <option :value="ata.id" x-text="ata.nombre"></option>
                             </template>
                         </select>
-                        <select x-model.number="cantidadPreguntas" 
-                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white text-sm outline-none">
-                            <option value="25">25 preguntas</option>
-                            <option value="50">50 preguntas</option>
-                            <option value="100">100 preguntas</option>
-                            <option value="200">200 preguntas</option>
-                            <option value="300">300 preguntas</option>
-                            <option value="400">400 preguntas</option>
-                            <option value="500">500 preguntas</option>
-                            <option value="600">600 preguntas</option>
-                            <option value="700">700 preguntas</option>
-                            <option value="800">800 preguntas</option>
-                        </select>
+                        <p class="text-xs text-slate-500 text-center">Se cargarán todas las preguntas del capítulo</p>
                         <button @click="comenzarQuiz('ata', ataSeleccionado)"
                                 :disabled="!ataSeleccionado"
                                 class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-2 rounded-lg text-sm"
@@ -502,7 +490,20 @@
                 <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-t-2xl"></div>
 
                 <h2 class="text-3xl font-black text-white mb-2 mt-4">Lote Completado</h2>
-                <p class="text-slate-400 mb-8">Resumen de la sesión</p>
+
+                <!-- Contexto de la sesión: banco + modo + capítulo -->
+                <div class="mb-6 space-y-1">
+                    <p class="text-sm font-bold text-blue-400 uppercase tracking-wider"
+                       x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre || ''"></p>
+                    <p class="text-xs text-slate-400">
+                        <span x-show="modo === 'ata'" x-text="labelCategoria + ': ' + (atas.find(a => a.id == ataSeleccionado)?.nombre || '')"></span>
+                        <span x-show="modo === 'nuevas'">Entrenamiento General</span>
+                        <span x-show="modo === 'fallos'">Repaso de Fallos</span>
+                        <span x-show="modo === 'favoritas'">Preguntas Favoritas</span>
+                    </p>
+                </div>
+
+                <p class="text-slate-500 text-xs mb-6">Resumen de la sesión</p>
 
                 <!-- Gráfico Simple -->
                 <div class="relative w-40 h-40 mx-auto mb-8">

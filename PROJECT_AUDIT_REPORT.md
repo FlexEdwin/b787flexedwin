@@ -601,3 +601,26 @@ Se auditó la RPC `reiniciar_progreso` para confirmar que su comportamiento no i
 ### 14.2. Invalidador de Caché
 * La versión del caché en `sw.js` se incrementó de `'escalafon-v7'` a `'escalafon-v8'` para asegurar la actualización inmediata de la lógica en los navegadores de los clientes.
 
+---
+
+## 15. Auditoría de UX y Rendimiento (Julio 2026) — v2.0.0
+
+**Fecha:** 2026-07-07
+**Auditor:** Antigravity (AI System)
+**Versión Auditada:** v1.9.5 → v2.0.0
+
+### 15.1. Hallazgos y Mejoras Implementadas
+
+#### 🔴 CRÍTICOS (todos resueltos)
+
+| ID | Archivo | Hallazgo | Resolución |
+|----|---------|----------|------------|
+| C1 | `index.html`, `app.js` | **Límite artificial en el estudio Por Capítulo.** El usuario seleccionaba un capítulo pero solo se le cargaban 25 preguntas (o el límite que estuviera en el selector de modo General), fragmentando el estudio de un tema. | ✅ Se eliminó el selector de cantidad del bloque "Por Capítulo" y se modificó `cargarPreguntas` para forzar `cantidad: 9999` al llamar a la RPC `obtener_general` cuando el `modo === 'ata'`, garantizando que se traigan todas las preguntas pendientes de ese capítulo de una sola vez. |
+| C2 | `app.js` | **Retraso inaceptable al terminar una sesión.** Al responder la última pregunta, el sistema se congelaba 2-5 segundos esperando las estadísticas de Supabase (`await cargarStatsBanco()`) antes de mostrar la pantalla final de resultados. | ✅ Se implementó un "Fast Path". `finalizarSesion()` ahora retira el `await` bloqueante, muestra inmediatamente el modal de resultados (cuyos datos ya están en memoria) y lanza la recarga de stats en background. |
+| C3 | `sw.js` | **PWA ignorando la actualización.** Debido a la estrategia Cache-First para los estáticos, los navegadores de los usuarios servían la versión antigua de `app.js` a pesar de los despliegues. | ✅ Se incrementó `CACHE_NAME` a `escalafon-v10` para purgar la caché y obligar a todos los clientes a descargar el nuevo flujo de capítulos completos y resultados instantáneos. |
+
+#### 🟡 MEDIOS (todos resueltos)
+
+| ID | Archivo | Hallazgo | Resolución |
+|----|---------|----------|------------|
+| M1 | `index.html` | **Falta de contexto en el resumen.** La pantalla de fin de sesión mostraba los aciertos y fallos pero no informaba qué banco ni qué modo o capítulo se había estudiado. | ✅ Se añadió el nombre del Banco (en color destacado y mayúsculas) y el Modo exacto (Entrenamiento General, Repaso de Fallos, Favoritas, o Capítulo Específico) en el modal de resultados utilizando los estados reactivos preexistentes. |

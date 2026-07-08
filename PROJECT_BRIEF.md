@@ -36,7 +36,7 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 ### C. Gestión de Contenidos & UX ✅ **COMPLETADO (v1.0)**
 
 - **Ingesta**: CSV/Importación directa a Supabase.
-- **Batch Loading**: ✅ Implementada carga por lotes (configurable por el usuario: 25, 50, 100 preguntas) reduciendo latencia.
+- **Batch Loading**: ✅ Carga por lotes configurable para modo General (25–800 preguntas). Modo Por Capítulo carga siempre la totalidad de preguntas del capítulo (`cantidad: 9999`). Repaso e Ilimitado y Favoritas también sin límite.
 - **Offline-Ready**: ✅ Service Worker y LocalStorage configurados para tolerancia a fallos de red.
 
 ### D. Estabilización y Mejoras de Experiencia (v1.6) ✅ **COMPLETADO**
@@ -87,6 +87,12 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar múl
 ### J. Recarga de Estadísticas Reactivas (v1.9.4) ✅ **COMPLETADO**
 
 - **Auto-Refresh asíncrono**: ✅ Al salir o cancelar una sesión de Quiz a mitad de lote, o al pausar el test, la aplicación ahora recarga automáticamente en segundo plano las estadísticas del banco seleccionado, garantizando que el Dashboard refleje el avance real sin forzar un F5.
+
+### K. UX, Contexto de Sesión y Rendimiento de Resultados (v2.0.0) ✅ **COMPLETADO**
+
+- **Modo Por Capítulo Completo**: ✅ Se eliminó el selector de cantidad de preguntas del modo "Por Capítulo/Tema/Categoría". Al seleccionar un capítulo, el sistema carga automáticamente TODAS las preguntas no dominadas del mismo (llamada `obtener_general` con `cantidad: 9999` y `p_ata_id` filtrado). Cada capítulo tiene un número diferente de preguntas y no tiene sentido truncarlo artificialmente.
+- **Contexto de Sesión en Resultados**: ✅ El modal de fin de lote ahora muestra claramente el banco y el modo de estudio practicado ("B787 / Capítulo: ATA 29 - Hidráulica", "AMOS / Entrenamiento General", etc.), usando los getters reactivos existentes (`listaBancos`, `atas`, `labelCategoria`).
+- **Resultados Instantáneos (Fast Path)**: ✅ `finalizarSesion()` navega a la pantalla de resultados de forma **inmediata** sin esperar la recarga de estadísticas del banco. Los datos del resumen (aciertos, fallos, %) ya están en RAM. Las estadísticas del banco se actualizan en segundo plano y se reflejan reactivamente en el modal sin que el usuario perciba ningún retraso.
 
 ---
 
