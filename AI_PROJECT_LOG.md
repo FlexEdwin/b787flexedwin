@@ -2,10 +2,45 @@
 
 ## Estado Actual
 
-- **Versión:** v2.0.0
+- **Versión:** v2.0.1
 - **Progreso:** ~100% completado.
 - **Funcionalidad:** Login completo, Multi-Banco, Selector de cantidad de preguntas ampliado (25-800) para modo General, Modo Por Capítulo carga automáticamente TODAS las preguntas del capítulo (sin selector de cantidad), Umbral de maestría configurable (1, 2 o 3 aciertos consecutivos), Exclusión de preguntas ("Ya me la sé") con confirmación, Marcación de Favoritas (estrella) con modo de estudio dedicado e ilimitado y persistencia tras reinicio. Al reiniciar progreso las exclusiones y el progreso general se pueden limpiar de forma selectiva (preguntas vuelven al pool) pero las favoritas se conservan intactas. Botón "Ver Respuesta" para consultar la respuesta correcta en caliente sin responder y avanzar sin penalización ni alterar estadísticas. Recarga automática y en segundo plano de las estadísticas al regresar al Dashboard o al finalizar un quiz. Modal de resultados muestra el banco y modo de la sesión estudiada. `finalizarSesion()` navega a resultados de forma instantánea y refresca stats en background (sin bloquear la UI).
 - **Deuda Técnica:** ⚠️ Preguntas duplicadas detectadas en tabla `preguntas` (10 textos repetidos, probablemente en banco Inglés). Requiere limpieza en BD.
+
+---
+
+### [2026-08-07] - Hotfix Crítico: Página sin estilos en conexiones celulares (v2.0.1) 🚨
+
+**REQUERIMIENTOS:**
+1. Corregir el bug por el cual usuarios con datos celulares (conexiones lentas) ven la página como HTML plano — sin colores, sin estilos, sin animaciones — haciendo imposible la navegación.
+
+**DIAGNÓSTICO DEL PROBLEMA (Root Cause):**
+La causa raíz era el uso de `cdn.tailwindcss.com` (Tailwind CDN Play) en producción. Este recurso **no es una hoja de estilos CSS**, sino un motor JavaScript de ~115KB que:
+1. Se descarga como un `<script>` bloqueante (sin `defer`)
+2. Parsea todo el DOM buscando clases de Tailwind
+3. Genera el CSS dinámicamente en el navegador
+4. Inyecta un `<style>` en el `<head>`
+
+En conexiones lentas (datos celulares), si el script no descarga a tiempo o hace timeout, la página se renderiza completamente sin estilos. Tailwind advierte explícitamente: **"Do not use the CDN Play in production"**.
+
+Irónicamente, el proyecto ya tenía un archivo `output.css` compilado (33KB) generado por Tailwind CLI que nunca se estaba referenciando en producción.
+
+**CAMBIOS DE CÓDIGO & ARCHIVOS:**
+- **index.html**:
+  - `[Cambio 1 / CRÍTICO]` Reemplazada la línea `<script src="https://cdn.tailwindcss.com">` por `<link rel="stylesheet" href="output.css">`. Esto cambia de un motor JS de 115KB que genera CSS dinámicamente a un archivo CSS estático precompilado de 33KB que se descarga y renderiza progresivamente.
+  - `[Cambio 2]` Agregado `defer` a los scripts de Chart.js y Canvas Confetti. Estos no son necesarios para el render inicial (solo se usan en la pantalla de resultados) y bloqueaban innecesariamente la carga.
+  - `[Cambio 3]` Agregado CSS crítico inline en el `<style>` existente (`body { background-color: #0f172a; color: #e2e8f0; }` y `nav`) como fallback mínimo para que incluso si `output.css` tarda, la página muestre fondo oscuro y texto legible en lugar de fondo blanco con texto negro.
+  - `[Cambio 4]` Agregados `<link rel="preconnect">` para `fonts.googleapis.com` y `fonts.gstatic.com`, eliminando ~100-300ms de latencia de DNS en la carga de Google Fonts.
+- **sw.js**:
+  - `[Cambio 5]` Incrementado el identificador del caché a `escalafon-v11`. Agregado `./output.css` a la lista de assets estáticos a cachear. Eliminado `https://cdn.tailwindcss.com` (ya no se usa).
+- **output.css**:
+  - Recompilado con `npm run build:css` (Tailwind CLI) para asegurar que contiene todas las clases utilizadas en el `index.html` actual.
+
+**RESULTADO:**
+- La página ahora carga con estilos completos incluso en conexiones celulares lentas (Slow 3G).
+- El CSS es un archivo estático de 33KB que se descarga progresivamente (vs 115KB de JavaScript bloqueante).
+- El Service Worker cachea el CSS local, garantizando carga instantánea en visitas subsecuentes y soporte offline.
+- CSS crítico inline garantiza que incluso en el peor caso (CSS externo no cargado), la página muestra fondo oscuro y texto legible.
 
 ---
 

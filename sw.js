@@ -1,17 +1,17 @@
 // ============================================================
-// SERVICE WORKER - Proyecto Escalafón v10
+// SERVICE WORKER - Proyecto Escalafón v11
 // Estrategia: Cache-first para assets, Network-first para APIs
 // ============================================================
-const CACHE_NAME = 'escalafon-v10';
+const CACHE_NAME = 'escalafon-v11';
 
 // Assets estáticos que SÍ existen y deben cachearse
 const STATIC_CACHE = [
   './',
   './index.html',
+  './output.css',
   './manifest.json',
   './src/js/app.js',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap',
-  'https://cdn.tailwindcss.com',
   'https://cdn.jsdelivr.net/npm/chart.js',
   'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js',
   'https://unpkg.com/@supabase/supabase-js@2',
